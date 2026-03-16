@@ -4,6 +4,7 @@ use validator::Validate;
 
 #[derive(Debug, Serialize, Deserialize, Validate)]
 pub struct UpdateUserCommand {
+    #[serde(default)]
     pub user_id: Uuid,
 
     #[validate(length(min = 2, max = 100, message = "Full name must be 2-100 characters"))]
