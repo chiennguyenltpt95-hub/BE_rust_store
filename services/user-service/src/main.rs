@@ -1,5 +1,5 @@
 use anyhow::Result;
-use dotenvy::dotenv;
+use dotenvy::from_filename;
 use tracing::info;
 
 mod config;
@@ -10,8 +10,10 @@ mod presentation;
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    // Load .env
-    dotenv().ok();
+    // Load .env từ thư mục service
+    from_filename("services/user-service/.env").ok();
+    // Fallback: load từ thư mục hiện tại
+    dotenvy::dotenv().ok();
 
     // Khởi tạo tracing / OpenTelemetry
     infrastructure::telemetry::init_tracing("user-service")?;
