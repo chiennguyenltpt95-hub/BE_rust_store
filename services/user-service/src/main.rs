@@ -1,0 +1,57 @@
+use anyhow::Result;
+use dotenvy::dotenv;
+use tracing::info;
+
+mod config;
+mod domain;
+mod application;
+mod infrastructure;
+mod presentation;
+
+#[tokio::main]
+async fn main() -> Result<()> {
+    // Load .env
+    dotenv().ok();
+
+    // Khởi tạo tracing / OpenTelemetry
+    infrastructure::telemetry::init_tracing("user-service")?;
+
+    info!("Starting user-service...");
+
+    // Load config
+    let cfg = config::AppConfig::from_env()?;
+
+    // Khởi tạo DB pool
+    let db_pool = infrastructure::persistence::create_pool(&cfg.database_url).await?;
+
+    // Migrations
+    sqlx::migrate!("./migrations").run(&db_pool).await?;
+
+    // Khởi tạo NATS
+    let nats = infrastructure::messaging::connect_nats(&cfg.nats_url).await?;
+
+    // Wire dependencies (Composition Root)
+    let user_repo = std::sync::Arc::new(
+        infrastructure::persistence::user_repository::PgUserRepository::new(db_pool.clone())
+    );
+    let event_publisher = std::sync::Arc::new(
+        infrastructure::messaging::NatsEventPublisher::new(nats)
+    );
+    let user_app_service = std::sync::Arc::new(
+        application::services::user_service::UserAppService::new(
+            user_repo.clone(),
+            event_publisher.clone(),
+        )
+    );
+
+    // Khởi router HTTP
+    let router = presentation::rest::router::build_router(user_app_service);
+
+    let addr: std::net::SocketAddr = cfg.http_addr.parse()?;
+    info!("Listening on {}", addr);
+
+    let listener = tokio::net::TcpListener::bind(addr).await?;
+    axum::serve(listener, router).await?;
+
+    Ok(())
+}

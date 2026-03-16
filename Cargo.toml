@@ -1,0 +1,53 @@
+[workspace]
+resolver = "2"
+members = [
+    "services/user-service",
+    # "services/product-service",
+    # "services/order-service",
+    "shared/domain-core",
+]
+
+[workspace.dependencies]
+# Async runtime
+tokio = { version = "1", features = ["full"] }
+tokio-stream = "0.1"
+
+# Web framework
+axum = { version = "0.7", features = ["macros"] }
+tower = { version = "0.4", features = ["full"] }
+tower-http = { version = "0.5", features = ["cors", "trace", "timeout"] }
+hyper = { version = "1", features = ["full"] }
+
+# Serialization
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+# Database
+sqlx = { version = "0.7", features = ["runtime-tokio-rustls", "postgres", "uuid", "chrono", "json"] }
+
+# gRPC
+tonic = "0.11"
+prost = "0.12"
+
+# Messaging (NATS / Kafka)
+async-nats = "0.34"
+
+# Observability (OpenTelemetry)
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
+tracing-opentelemetry = "0.23"
+opentelemetry = "0.22"
+opentelemetry_sdk = { version = "0.22", features = ["rt-tokio"] }
+opentelemetry-otlp = { version = "0.15", features = ["tonic"] }
+
+# Utils
+uuid = { version = "1", features = ["v4", "serde"] }
+chrono = { version = "0.4", features = ["serde"] }
+thiserror = "1"
+anyhow = "1"
+async-trait = "0.1"
+validator = { version = "0.18", features = ["derive"] }
+config = "0.14"
+dotenvy = "0.15"
+bcrypt = "0.15"
+jsonwebtoken = "9"

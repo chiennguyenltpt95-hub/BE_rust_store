@@ -1,0 +1,28 @@
+[package]
+name = "product-service"
+version = "0.1.0"
+edition = "2021"
+
+[[bin]]
+name = "product-service"
+path = "src/main.rs"
+
+[dependencies]
+domain-core = { path = "../../shared/domain-core" }
+tokio = { workspace = true }
+axum = { workspace = true }
+tower = { workspace = true }
+tower-http = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+sqlx = { workspace = true }
+async-nats = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+uuid = { workspace = true }
+chrono = { workspace = true }
+thiserror = { workspace = true }
+anyhow = { workspace = true }
+async-trait = { workspace = true }
+validator = { workspace = true }
+dotenvy = { workspace = true }
