@@ -1,7 +1,8 @@
-use serde::{Deserialize, Serialize};
 use domain_core::pagination::PageRequest;
+use serde::{Deserialize, Serialize};
+use utoipa::{IntoParams, ToSchema};
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, IntoParams)]
 pub struct ListUsersQuery {
     pub page: Option<u64>,
     pub size: Option<u64>,
@@ -18,11 +19,16 @@ impl ListUsersQuery {
     }
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 pub struct UserSummary {
+    #[schema(example = "00000000-0000-0000-0000-000000000000")]
     pub id: uuid::Uuid,
+    #[schema(example = "user@example.com")]
     pub email: String,
+    #[schema(example = "Nguyen Van A")]
     pub full_name: String,
+    #[schema(example = "Customer")]
     pub role: String,
+    #[schema(example = "Active")]
     pub status: String,
 }

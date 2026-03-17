@@ -48,3 +48,8 @@ config = { workspace = true }
 dotenvy = { workspace = true }
 bcrypt = { workspace = true }
 jsonwebtoken = { workspace = true }
+sha2 = { workspace = true }
+hex = { workspace = true }
+utoipa = { workspace = true }
+utoipa-swagger-ui = { workspace = true }
+utoipa-axum = { workspace = true }

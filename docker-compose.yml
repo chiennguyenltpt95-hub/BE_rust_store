@@ -5,18 +5,19 @@ services:
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: password
-      POSTGRES_DB: user_db
+      POSTGRES_DB: store_platform
     ports:
-      - "5432:5432"
+      - '5432:5432'
     volumes:
       - pgdata:/var/lib/postgresql/data
 
   nats:
     image: nats:2-alpine
     container_name: be_store_nats
+    command: ['-js'] # Enable JetStream
     ports:
-      - "4222:4222"
-      - "8222:8222" # monitoring
+      - '4222:4222'
+      - '8222:8222' # monitoring
 
 volumes:
   pgdata:

@@ -2,9 +2,9 @@ use anyhow::Result;
 use dotenvy::from_filename;
 use tracing::info;
 
+mod application;
 mod config;
 mod domain;
-mod application;
 mod infrastructure;
 mod presentation;
 
@@ -29,25 +29,36 @@ async fn main() -> Result<()> {
     // Migrations
     sqlx::migrate!("./migrations").run(&db_pool).await?;
 
-    // Khởi tạo NATS
+    // Khởi tạo NATS + JetStream
     let nats = infrastructure::messaging::connect_nats(&cfg.nats_url).await?;
+    let jetstream = infrastructure::messaging::create_jetstream(&nats).await?;
 
     // Wire dependencies (Composition Root)
     let user_repo = std::sync::Arc::new(
-        infrastructure::persistence::user_repository::PgUserRepository::new(db_pool.clone())
+        infrastructure::persistence::user_repository::PgUserRepository::new(db_pool.clone()),
     );
-    let event_publisher = std::sync::Arc::new(
-        infrastructure::messaging::NatsEventPublisher::new(nats)
-    );
-    let user_app_service = std::sync::Arc::new(
-        application::services::user_service::UserAppService::new(
+    let event_publisher = std::sync::Arc::new(infrastructure::messaging::NatsEventPublisher::new(
+        jetstream,
+    ));
+    let user_app_service =
+        std::sync::Arc::new(application::services::user_service::UserAppService::new(
             user_repo.clone(),
             event_publisher.clone(),
-        )
+        ));
+
+    let token_repo = std::sync::Arc::new(
+        infrastructure::persistence::token_repository::PgTokenRepository::new(db_pool.clone()),
+    );
+    let auth_app_service = std::sync::Arc::new(
+        application::services::auth_service::AuthAppService::new(
+            user_repo.clone(),
+            token_repo,
+            &cfg.jwt_secret,
+        ),
     );
 
     // Khởi router HTTP
-    let router = presentation::rest::router::build_router(user_app_service);
+    let router = presentation::rest::router::build_router(user_app_service, auth_app_service);
 
     let addr: std::net::SocketAddr = cfg.http_addr.parse()?;
     info!("Listening on {}", addr);

@@ -1,7 +1,8 @@
 use serde::Serialize;
+use utoipa::ToSchema;
 
 /// Chuẩn hóa response trả về cho client
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 pub struct ApiResponse<T: Serialize> {
     pub success: bool,
     pub data: Option<T>,
