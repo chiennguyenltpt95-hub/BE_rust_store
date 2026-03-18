@@ -1,10 +1,17 @@
 use anyhow::Result;
-use async_nats::jetstream::{self, Context as JetStreamContext};
 use async_trait::async_trait;
 use domain_core::domain_event::DomainEvent;
 use domain_core::error::DomainError;
-use serde_json::json;
+use prost::Message;
+use rdkafka::config::ClientConfig;
+use rdkafka::producer::{FutureProducer, FutureRecord};
+use std::time::Duration;
 use tracing::{info, warn};
+
+/// Generated protobuf types
+pub mod proto {
+    include!(concat!(env!("OUT_DIR"), "/store.events.rs"));
+}
 
 /// Port: EventPublisher
 #[async_trait]
@@ -12,65 +19,98 @@ pub trait EventPublisher: Send + Sync {
     async fn publish(&self, event: &dyn DomainEvent) -> Result<(), DomainError>;
 }
 
-/// NATS JetStream implementation
-pub struct NatsEventPublisher {
-    js: JetStreamContext,
+/// Kafka implementation — Protobuf encoding
+pub struct KafkaEventPublisher {
+    producer: FutureProducer,
+    topic: String,
 }
 
-impl NatsEventPublisher {
-    pub fn new(js: JetStreamContext) -> Self {
-        Self { js }
+impl KafkaEventPublisher {
+    pub fn new(brokers: &str, topic: &str) -> Result<Self> {
+        let producer: FutureProducer = ClientConfig::new()
+            .set("bootstrap.servers", brokers)
+            .set("message.timeout.ms", "5000")
+            .set("acks", "all")
+            .create()
+            .map_err(|e| anyhow::anyhow!("Failed to create Kafka producer: {}", e))?;
+
+        info!("Kafka producer connected to {}", brokers);
+        Ok(Self {
+            producer,
+            topic: topic.to_string(),
+        })
     }
 }
 
 #[async_trait]
-impl EventPublisher for NatsEventPublisher {
+impl EventPublisher for KafkaEventPublisher {
     async fn publish(&self, event: &dyn DomainEvent) -> Result<(), DomainError> {
-        let subject = format!("events.{}", event.event_type());
-        let payload = json!({
-            "aggregate_id": event.aggregate_id(),
-            "event_type": event.event_type(),
-            "occurred_at": event.occurred_at(),
-        });
+        // Build protobuf payload từ DomainEvent
+        let payload_json = event.payload();
+        let proto_payload = build_proto_payload(event, &payload_json);
 
-        let bytes = serde_json::to_vec(&payload)
-            .map_err(|e| DomainError::InfrastructureError(e.to_string()))?;
+        let envelope = proto::DomainEventEnvelope {
+            aggregate_id: event.aggregate_id().to_string(),
+            event_type: event.event_type().to_string(),
+            occurred_at: event.occurred_at().to_rfc3339(),
+            payload: Some(proto_payload),
+        };
 
-        // JetStream publish + chờ ACK đảm bảo message không mất
-        self.js
-            .publish(subject, bytes.into())
+        // Encode sang protobuf binary
+        let bytes = envelope.encode_to_vec();
+
+        // Dùng aggregate_id làm key → đảm bảo thứ tự events cùng aggregate
+        let key = event.aggregate_id().to_string();
+
+        let record = FutureRecord::to(&self.topic)
+            .key(&key)
+            .payload(&bytes);
+
+        self.producer
+            .send(record, Duration::from_secs(5))
             .await
-            .map_err(|e| DomainError::InfrastructureError(e.to_string()))?
-            .await // chờ server ACK
-            .map_err(|e| DomainError::InfrastructureError(e.to_string()))?;
+            .map_err(|(e, _)| DomainError::InfrastructureError(format!("Kafka publish error: {}", e)))?;
 
         Ok(())
     }
 }
 
-pub async fn connect_nats(url: &str) -> Result<async_nats::Client> {
-    let client = async_nats::connect(url).await?;
-    Ok(client)
+/// Map DomainEvent → protobuf oneof payload
+fn build_proto_payload(
+    event: &dyn DomainEvent,
+    json: &serde_json::Value,
+) -> proto::domain_event_envelope::Payload {
+    match event.event_type() {
+        "user.created" => {
+            proto::domain_event_envelope::Payload::UserCreated(proto::UserCreatedEvent {
+                user_id: json_str(json, "user_id"),
+                email: json_str(json, "email"),
+                full_name: json_str(json, "full_name"),
+                role: json_str(json, "role"),
+            })
+        }
+        "user.updated" => {
+            proto::domain_event_envelope::Payload::UserUpdated(proto::UserUpdatedEvent {
+                user_id: json_str(json, "user_id"),
+                full_name: json_str(json, "full_name"),
+            })
+        }
+        "user.deleted" => {
+            proto::domain_event_envelope::Payload::UserDeleted(proto::UserDeletedEvent {
+                user_id: json_str(json, "user_id"),
+            })
+        }
+        _ => {
+            proto::domain_event_envelope::Payload::UserCreated(proto::UserCreatedEvent::default())
+        }
+    }
 }
 
-/// Khởi tạo JetStream context và tạo stream EVENTS
-pub async fn create_jetstream(client: &async_nats::Client) -> Result<JetStreamContext> {
-    let js = jetstream::new(client.clone());
-
-    // Tạo stream lưu toàn bộ events.* nếu chưa có
-    js.get_or_create_stream(jetstream::stream::Config {
-        name: "EVENTS".to_string(),
-        subjects: vec!["events.>".to_string()],
-        retention: jetstream::stream::RetentionPolicy::Limits,
-        storage: jetstream::stream::StorageType::File,
-        max_messages: 10_000_000,
-        ..Default::default()
-    })
-    .await
-    .map_err(|e| anyhow::anyhow!("Failed to create JetStream EVENTS stream: {}", e))?;
-
-    info!("JetStream stream EVENTS ready");
-    Ok(js)
+fn json_str(val: &serde_json::Value, key: &str) -> String {
+    val.get(key)
+        .and_then(|v| v.as_str())
+        .unwrap_or_default()
+        .to_string()
 }
 
 /// Dùng trong dev/test — không publish thật

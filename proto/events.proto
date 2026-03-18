@@ -1,0 +1,38 @@
+syntax = "proto3";
+
+package store.events;
+
+// ═══════════════════════════════════════════════════════════════
+// Event chung — mọi domain event đều được bọc trong envelope này
+// ═══════════════════════════════════════════════════════════════
+message DomainEventEnvelope {
+  string aggregate_id = 1;
+  string event_type   = 2;
+  string occurred_at  = 3;
+
+  // Payload cụ thể — chỉ 1 trong các field oneof được set
+  oneof payload {
+    UserCreatedEvent   user_created   = 10;
+    UserUpdatedEvent   user_updated   = 11;
+    UserDeletedEvent   user_deleted   = 12;
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// User events
+// ═══════════════════════════════════════════════════════════════
+message UserCreatedEvent {
+  string user_id   = 1;
+  string email     = 2;
+  string full_name = 3;
+  string role      = 4;
+}
+
+message UserUpdatedEvent {
+  string user_id   = 1;
+  string full_name = 2;
+}
+
+message UserDeletedEvent {
+  string user_id = 1;
+}

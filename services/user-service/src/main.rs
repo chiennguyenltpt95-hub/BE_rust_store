@@ -29,17 +29,16 @@ async fn main() -> Result<()> {
     // Migrations
     sqlx::migrate!("./migrations").run(&db_pool).await?;
 
-    // Khởi tạo NATS + JetStream
-    let nats = infrastructure::messaging::connect_nats(&cfg.nats_url).await?;
-    let jetstream = infrastructure::messaging::create_jetstream(&nats).await?;
+    // Khởi tạo Kafka producer
+    let event_publisher = std::sync::Arc::new(infrastructure::messaging::KafkaEventPublisher::new(
+        &cfg.kafka_brokers,
+        &cfg.kafka_topic,
+    )?);
 
     // Wire dependencies (Composition Root)
     let user_repo = std::sync::Arc::new(
         infrastructure::persistence::user_repository::PgUserRepository::new(db_pool.clone()),
     );
-    let event_publisher = std::sync::Arc::new(infrastructure::messaging::NatsEventPublisher::new(
-        jetstream,
-    ));
     let user_app_service =
         std::sync::Arc::new(application::services::user_service::UserAppService::new(
             user_repo.clone(),
@@ -49,13 +48,12 @@ async fn main() -> Result<()> {
     let token_repo = std::sync::Arc::new(
         infrastructure::persistence::token_repository::PgTokenRepository::new(db_pool.clone()),
     );
-    let auth_app_service = std::sync::Arc::new(
-        application::services::auth_service::AuthAppService::new(
+    let auth_app_service =
+        std::sync::Arc::new(application::services::auth_service::AuthAppService::new(
             user_repo.clone(),
             token_repo,
             &cfg.jwt_secret,
-        ),
-    );
+        ));
 
     // Khởi router HTTP
     let router = presentation::rest::router::build_router(user_app_service, auth_app_service);

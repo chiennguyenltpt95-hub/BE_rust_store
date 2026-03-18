@@ -1,12 +1,18 @@
 use chrono::{DateTime, Utc};
-use uuid::Uuid;
 use serde::{Deserialize, Serialize};
+use uuid::Uuid;
 
 /// Trait DomainEvent — base cho mọi domain event.
 pub trait DomainEvent: std::fmt::Debug + Send + Sync {
     fn event_type(&self) -> &str;
     fn aggregate_id(&self) -> Uuid;
     fn occurred_at(&self) -> DateTime<Utc>;
+
+    /// Serialize event thành JSON Value để publish lên message bus.
+    /// Mặc định trả về object rỗng — các event nên override.
+    fn payload(&self) -> serde_json::Value {
+        serde_json::json!({})
+    }
 }
 
 /// Envelope bọc domain event kèm metadata để publish lên message bus.

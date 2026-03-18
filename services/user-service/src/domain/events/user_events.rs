@@ -12,9 +12,18 @@ pub struct UserCreated {
 }
 
 impl DomainEvent for UserCreated {
-    fn event_type(&self) -> &str { "user.created" }
-    fn aggregate_id(&self) -> Uuid { self.user_id }
-    fn occurred_at(&self) -> DateTime<Utc> { self.occurred_at }
+    fn event_type(&self) -> &str {
+        "user.created"
+    }
+    fn aggregate_id(&self) -> Uuid {
+        self.user_id
+    }
+    fn occurred_at(&self) -> DateTime<Utc> {
+        self.occurred_at
+    }
+    fn payload(&self) -> serde_json::Value {
+        serde_json::to_value(self).unwrap_or_default()
+    }
 }
 
 #[derive(Debug, serde::Serialize)]
@@ -25,9 +34,18 @@ pub struct UserUpdated {
 }
 
 impl DomainEvent for UserUpdated {
-    fn event_type(&self) -> &str { "user.updated" }
-    fn aggregate_id(&self) -> Uuid { self.user_id }
-    fn occurred_at(&self) -> DateTime<Utc> { self.occurred_at }
+    fn event_type(&self) -> &str {
+        "user.updated"
+    }
+    fn aggregate_id(&self) -> Uuid {
+        self.user_id
+    }
+    fn occurred_at(&self) -> DateTime<Utc> {
+        self.occurred_at
+    }
+    fn payload(&self) -> serde_json::Value {
+        serde_json::to_value(self).unwrap_or_default()
+    }
 }
 
 #[derive(Debug, serde::Serialize)]
@@ -37,7 +55,16 @@ pub struct UserDeleted {
 }
 
 impl DomainEvent for UserDeleted {
-    fn event_type(&self) -> &str { "user.deleted" }
-    fn aggregate_id(&self) -> Uuid { self.user_id }
-    fn occurred_at(&self) -> DateTime<Utc> { self.occurred_at }
+    fn event_type(&self) -> &str {
+        "user.deleted"
+    }
+    fn aggregate_id(&self) -> Uuid {
+        self.user_id
+    }
+    fn occurred_at(&self) -> DateTime<Utc> {
+        self.occurred_at
+    }
+    fn payload(&self) -> serde_json::Value {
+        serde_json::to_value(self).unwrap_or_default()
+    }
 }

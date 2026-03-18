@@ -3,7 +3,8 @@ use anyhow::Result;
 #[derive(Debug, Clone)]
 pub struct AppConfig {
     pub database_url: String,
-    pub nats_url: String,
+    pub kafka_brokers: String,
+    pub kafka_topic: String,
     pub http_addr: String,
     pub jwt_secret: String,
     pub service_name: String,
@@ -15,7 +16,9 @@ impl AppConfig {
             database_url: std::env::var("DATABASE_URL").unwrap_or_else(|_| {
                 "postgres://postgres:password@localhost:5432/store_platform".into()
             }),
-            nats_url: std::env::var("NATS_URL").unwrap_or_else(|_| "nats://localhost:4222".into()),
+            kafka_brokers: std::env::var("KAFKA_BROKERS")
+                .unwrap_or_else(|_| "localhost:9094".into()),
+            kafka_topic: std::env::var("KAFKA_TOPIC").unwrap_or_else(|_| "domain-events".into()),
             http_addr: std::env::var("HTTP_ADDR").unwrap_or_else(|_| "0.0.0.0:3001".into()),
             jwt_secret: std::env::var("JWT_SECRET")
                 .unwrap_or_else(|_| "super-secret-change-me".into()),
