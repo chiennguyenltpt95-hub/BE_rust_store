@@ -29,8 +29,11 @@ message UserCreatedEvent {
 }
 
 message UserUpdatedEvent {
-  string user_id   = 1;
-  string full_name = 2;
+  string user_id        = 1;
+  string full_name      = 2;
+  string address        = 3;
+  int32  age            = 4;
+  string wallet_address = 5;
 }
 
 message UserDeletedEvent {

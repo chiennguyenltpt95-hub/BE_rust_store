@@ -19,6 +19,4 @@ pub struct CreateUserCommand {
     #[validate(length(min = 2, max = 100, message = "Full name must be 2-100 characters"))]
     pub full_name: String,
 
-    /// "admin" | "customer" | "seller"
-    pub role: Option<String>,
 }

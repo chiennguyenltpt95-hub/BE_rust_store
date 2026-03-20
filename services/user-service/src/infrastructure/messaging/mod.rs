@@ -93,6 +93,9 @@ fn build_proto_payload(
             proto::domain_event_envelope::Payload::UserUpdated(proto::UserUpdatedEvent {
                 user_id: json_str(json, "user_id"),
                 full_name: json_str(json, "full_name"),
+                address: json_str(json, "address"),
+                age: json.get("age").and_then(|v| v.as_i64()).unwrap_or(0) as i32,
+                wallet_address: json_str(json, "wallet_address"),
             })
         }
         "user.deleted" => {

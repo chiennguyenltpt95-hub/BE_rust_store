@@ -30,6 +30,9 @@ impl DomainEvent for UserCreated {
 pub struct UserUpdated {
     pub user_id: Uuid,
     pub full_name: String,
+    pub address: Option<String>,
+    pub age: Option<i16>,
+    pub wallet_address: Option<String>,
     pub occurred_at: DateTime<Utc>,
 }
 

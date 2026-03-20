@@ -44,11 +44,7 @@ impl UserAppService {
         }
 
         let password = HashedPassword::from_raw(&cmd.password)?;
-        let role = match cmd.role.as_deref() {
-            Some("admin") => UserRole::Admin,
-            Some("seller") => UserRole::Seller,
-            _ => UserRole::Customer,
-        };
+        let role = UserRole::Customer; // Default role — production có thể cho chọn
 
         let mut user = User::create(email, password, cmd.full_name, role)?;
 
@@ -73,7 +69,7 @@ impl UserAppService {
         let mut user = self.user_repo.find_by_id(cmd.user_id).await?
             .ok_or_else(|| DomainError::NotFound(format!("User {}", cmd.user_id)))?;
 
-        user.update_profile(cmd.full_name)?;
+        user.update_profile(cmd.full_name, cmd.address, cmd.age, cmd.wallet_address)?;
         self.user_repo.update(&user).await?;
 
         for event in user.uncommitted_events() {
@@ -113,6 +109,9 @@ impl UserAppService {
             full_name: user.full_name,
             role: format!("{:?}", user.role),
             status: format!("{:?}", user.status),
+            address: user.address,
+            age: user.age,
+            wallet_address: user.wallet_address,
             created_at: user.created_at,
         })
     }

@@ -3,8 +3,8 @@ use domain_core::aggregate::AggregateBase;
 use domain_core::error::DomainError;
 use uuid::Uuid;
 
+use crate::domain::events::user_events::{UserCreated, UserDeleted, UserUpdated};
 use crate::domain::value_objects::{Email, HashedPassword};
-use crate::domain::events::user_events::{UserCreated, UserUpdated, UserDeleted};
 
 /// User Role
 #[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize, sqlx::Type)]
@@ -33,6 +33,9 @@ pub struct User {
     pub full_name: String,
     pub role: UserRole,
     pub status: UserStatus,
+    pub address: Option<String>,
+    pub age: Option<i16>,
+    pub wallet_address: Option<String>,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
     base: AggregateBase,
@@ -47,7 +50,9 @@ impl User {
         role: UserRole,
     ) -> Result<Self, DomainError> {
         if full_name.trim().is_empty() {
-            return Err(DomainError::ValidationError("Full name cannot be empty".into()));
+            return Err(DomainError::ValidationError(
+                "Full name cannot be empty".into(),
+            ));
         }
 
         let id = Uuid::new_v4();
@@ -69,6 +74,9 @@ impl User {
             full_name,
             role,
             status: UserStatus::Active,
+            address: None,
+            age: None,
+            wallet_address: None,
             created_at: now,
             updated_at: now,
             base,
@@ -83,6 +91,9 @@ impl User {
         full_name: String,
         role: UserRole,
         status: UserStatus,
+        address: Option<String>,
+        age: Option<i16>,
+        wallet_address: Option<String>,
         created_at: DateTime<Utc>,
         updated_at: DateTime<Utc>,
     ) -> Self {
@@ -93,6 +104,9 @@ impl User {
             full_name,
             role,
             status,
+            address,
+            age,
+            wallet_address,
             created_at,
             updated_at,
             base: AggregateBase::new(),
@@ -100,15 +114,36 @@ impl User {
     }
 
     /// Business method: cập nhật thông tin
-    pub fn update_profile(&mut self, full_name: String) -> Result<(), DomainError> {
+    pub fn update_profile(
+        &mut self,
+        full_name: String,
+        address: Option<String>,
+        age: Option<i16>,
+        wallet_address: Option<String>,
+    ) -> Result<(), DomainError> {
         if full_name.trim().is_empty() {
-            return Err(DomainError::ValidationError("Full name cannot be empty".into()));
+            return Err(DomainError::ValidationError(
+                "Full name cannot be empty".into(),
+            ));
+        }
+        if let Some(a) = age {
+            if a < 0 || a > 150 {
+                return Err(DomainError::ValidationError(
+                    "Age must be between 0 and 150".into(),
+                ));
+            }
         }
         self.full_name = full_name;
+        self.address = address;
+        self.age = age;
+        self.wallet_address = wallet_address;
         self.updated_at = Utc::now();
         self.base.record_event(Box::new(UserUpdated {
             user_id: self.id,
             full_name: self.full_name.clone(),
+            address: self.address.clone(),
+            age: self.age,
+            wallet_address: self.wallet_address.clone(),
             occurred_at: self.updated_at,
         }));
         Ok(())
@@ -117,7 +152,9 @@ impl User {
     /// Business method: xóa mềm / ban user
     pub fn deactivate(&mut self) -> Result<(), DomainError> {
         if self.status == UserStatus::Banned {
-            return Err(DomainError::BusinessRuleViolation("User already banned".into()));
+            return Err(DomainError::BusinessRuleViolation(
+                "User already banned".into(),
+            ));
         }
         self.status = UserStatus::Inactive;
         self.updated_at = Utc::now();
