@@ -54,6 +54,7 @@ utoipa = { workspace = true }
 utoipa-swagger-ui = { workspace = true }
 utoipa-axum = { workspace = true }
 prost = { workspace = true }
+redis = { version = "1.0.5", features = ["tokio-comp"] }
 
 [build-dependencies]
 prost-build = "0.12"

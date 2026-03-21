@@ -13,6 +13,7 @@ pub trait UserRepository: Send + Sync {
     async fn find_by_email(&self, email: &Email) -> Result<Option<User>, DomainError>;
     async fn save(&self, user: &User) -> Result<(), DomainError>;
     async fn update(&self, user: &User) -> Result<(), DomainError>;
+    async fn set_verified(&self, id: Uuid) -> Result<(), DomainError>;
     async fn delete(&self, id: Uuid) -> Result<(), DomainError>;
     async fn exists_by_email(&self, email: &Email) -> Result<bool, DomainError>;
 }

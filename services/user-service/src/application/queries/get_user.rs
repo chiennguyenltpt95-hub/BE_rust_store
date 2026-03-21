@@ -24,5 +24,6 @@ pub struct UserView {
     pub address: Option<String>,
     pub age: Option<i16>,
     pub wallet_address: Option<String>,
+    pub verified: bool,
     pub created_at: DateTime<Utc>,
 }

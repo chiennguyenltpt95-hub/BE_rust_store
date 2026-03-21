@@ -34,4 +34,5 @@ pub struct UserSummary {
     pub address: Option<String>,
     pub age: Option<i16>,
     pub wallet_address: Option<String>,
+    pub verified: bool,
 }

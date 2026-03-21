@@ -8,6 +8,7 @@ pub struct AppConfig {
     pub http_addr: String,
     pub jwt_secret: String,
     pub service_name: String,
+    pub redis_url: String,
 }
 
 impl AppConfig {
@@ -23,6 +24,7 @@ impl AppConfig {
             jwt_secret: std::env::var("JWT_SECRET")
                 .unwrap_or_else(|_| "super-secret-change-me".into()),
             service_name: "user-service".into(),
+            redis_url: std::env::var("REDIS_URL").unwrap_or_else(|_| "redis://localhost:6379".into()),
         })
     }
 }

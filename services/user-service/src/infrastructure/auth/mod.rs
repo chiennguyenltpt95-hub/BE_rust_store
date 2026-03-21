@@ -13,8 +13,8 @@ pub const REFRESH_TOKEN_TTL_DAYS: i64 = 7;
 /// Payload bên trong JWT access token
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Claims {
-    pub sub: String, // user_id
-    pub role: String,
+    pub sub: String,
+    pub payload: serde_json::Value,
     pub exp: i64,
     pub iat: i64,
 }
@@ -33,11 +33,15 @@ impl JwtService {
     }
 
     /// Tạo access token ngắn hạn (15 phút)
-    pub fn generate_access_token(&self, user_id: Uuid, role: &str) -> Result<String, DomainError> {
+    pub fn generate_access_token<T: Serialize>(
+        &self,
+        user_id: Uuid,
+        payload: T,
+    ) -> Result<String, DomainError> {
         let now = Utc::now().timestamp();
         let claims = Claims {
             sub: user_id.to_string(),
-            role: role.to_string(),
+            payload: serde_json::to_value(payload).unwrap_or_default(),
             iat: now,
             exp: now + ACCESS_TOKEN_TTL_SECS,
         };

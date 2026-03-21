@@ -6,16 +6,18 @@ use axum::{
 use std::sync::Arc;
 use uuid::Uuid;
 
-use crate::application::commands::{CreateUserCommand, DeleteUserCommand, UpdateUserCommand};
+use super::response::ApiResponse;
+use crate::application::commands::{
+    CreateUserCommand, DeleteUserCommand, UpdateUserCommand, VerifyTokenCommand,
+};
 use crate::application::queries::get_user::UserView;
 use crate::application::queries::list_users::{ListUsersQuery, UserSummary};
 use crate::application::services::UserAppService;
-use super::response::ApiResponse;
 
 /// POST /api/v1/users
 #[utoipa::path(
     post,
-    path = "/api/v1/users",
+    path = "/",
     tag = "Users",
     request_body = CreateUserCommand,
     responses(
@@ -40,7 +42,7 @@ pub async fn create_user(
 /// GET /api/v1/users/:id
 #[utoipa::path(
     get,
-    path = "/api/v1/users/{id}",
+    path = "/{id}",
     tag = "Users",
     params(("id" = Uuid, Path, description = "User ID")),
     responses(
@@ -64,7 +66,7 @@ pub async fn get_user(
 /// GET /api/v1/users
 #[utoipa::path(
     get,
-    path = "/api/v1/users",
+    path = "/",
     tag = "Users",
     params(ListUsersQuery),
     responses(
@@ -87,7 +89,7 @@ pub async fn list_users(
 /// PUT /api/v1/users/:id
 #[utoipa::path(
     put,
-    path = "/api/v1/users/{id}",
+    path = "/{id}",
     tag = "Users",
     params(("id" = Uuid, Path, description = "User ID")),
     request_body = UpdateUserCommand,
@@ -114,7 +116,7 @@ pub async fn update_user(
 /// DELETE /api/v1/users/:id
 #[utoipa::path(
     delete,
-    path = "/api/v1/users/{id}",
+    path = "/{id}",
     tag = "Users",
     params(("id" = Uuid, Path, description = "User ID")),
     responses(
@@ -127,6 +129,30 @@ pub async fn delete_user(
     Path(id): Path<Uuid>,
 ) -> Result<Json<ApiResponse<()>>, (StatusCode, Json<ApiResponse<()>>)> {
     match svc.delete_user(DeleteUserCommand { user_id: id }).await {
+        Ok(_) => Ok(Json(ApiResponse::success(()))),
+        Err(e) => {
+            let (status, msg) = map_domain_error(&e);
+            Err((status, Json(ApiResponse::error(msg))))
+        }
+    }
+}
+
+#[utoipa::path(
+    post,
+    path = "/verify={token}",
+    tag = "Users",
+    request_body = VerifyTokenCommand,
+    responses(
+        (status = 200, description = "Verification successful"),
+        (status = 401, description = "Invalid credentials"),
+    )
+)]
+pub async fn verify_token(
+    State(svc): State<Arc<UserAppService>>,
+    Path(token): Path<String>,
+) -> Result<Json<ApiResponse<()>>, (StatusCode, Json<ApiResponse<()>>)> {
+    let result = svc.verify_token(VerifyTokenCommand { token }).await;
+    match result {
         Ok(_) => Ok(Json(ApiResponse::success(()))),
         Err(e) => {
             let (status, msg) = map_domain_error(&e);

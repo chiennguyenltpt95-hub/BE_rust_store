@@ -70,8 +70,39 @@ pub fn build_router(
         .routes(routes!(auth_handler::logout))
         .split_for_parts();
 
-    // Merge tất cả paths vào một OpenApi document
+    // Merge tất cả paths vào một OpenApi document, thêm prefix cho đúng route thực tế
     let mut api = ApiDoc::openapi();
+
+    let mut user_api = user_api;
+    let user_paths: Vec<_> = user_api.paths.paths.keys().cloned().collect();
+    for old_path in user_paths {
+        if let Some(item) = user_api.paths.paths.remove(&old_path) {
+            let new_path = format!("/api/v1/users{old_path}");
+            let new_path = new_path.trim_end_matches('/').to_string();
+            let new_path = if new_path.is_empty() {
+                "/".to_string()
+            } else {
+                new_path
+            };
+            user_api.paths.paths.insert(new_path, item);
+        }
+    }
+
+    let mut auth_api = auth_api;
+    let auth_paths: Vec<_> = auth_api.paths.paths.keys().cloned().collect();
+    for old_path in auth_paths {
+        if let Some(item) = auth_api.paths.paths.remove(&old_path) {
+            let new_path = format!("/api/v1/auth{old_path}");
+            let new_path = new_path.trim_end_matches('/').to_string();
+            let new_path = if new_path.is_empty() {
+                "/".to_string()
+            } else {
+                new_path
+            };
+            auth_api.paths.paths.insert(new_path, item);
+        }
+    }
+
     api.merge(user_api);
     api.merge(auth_api);
 

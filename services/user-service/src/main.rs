@@ -2,6 +2,8 @@ use anyhow::Result;
 use dotenvy::from_filename;
 use tracing::info;
 
+use crate::infrastructure::auth::JwtService;
+
 mod application;
 mod config;
 mod domain;
@@ -35,6 +37,8 @@ async fn main() -> Result<()> {
         &cfg.kafka_topic,
     )?);
 
+    let redis_cache = std::sync::Arc::new(infrastructure::cache::RedisCache::new(&cfg.redis_url)?);
+
     // Wire dependencies (Composition Root)
     let user_repo = std::sync::Arc::new(
         infrastructure::persistence::user_repository::PgUserRepository::new(db_pool.clone()),
@@ -43,11 +47,14 @@ async fn main() -> Result<()> {
         std::sync::Arc::new(application::services::user_service::UserAppService::new(
             user_repo.clone(),
             event_publisher.clone(),
+            redis_cache.clone(),
+            JwtService::new(&cfg.jwt_secret),
         ));
 
     let token_repo = std::sync::Arc::new(
         infrastructure::persistence::token_repository::PgTokenRepository::new(db_pool.clone()),
     );
+
     let auth_app_service =
         std::sync::Arc::new(application::services::auth_service::AuthAppService::new(
             user_repo.clone(),

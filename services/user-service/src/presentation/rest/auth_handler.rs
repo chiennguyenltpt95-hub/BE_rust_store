@@ -10,7 +10,7 @@ use crate::presentation::rest::response::ApiResponse;
 /// POST /api/v1/auth/login
 #[utoipa::path(
     post,
-    path = "/api/v1/auth/login",
+    path = "/login",
     tag = "Auth",
     request_body = LoginCommand,
     responses(
@@ -32,7 +32,7 @@ pub async fn login(
 /// POST /api/v1/auth/refresh
 #[utoipa::path(
     post,
-    path = "/api/v1/auth/refresh",
+    path = "/refresh",
     tag = "Auth",
     request_body = RefreshTokenCommand,
     responses(
@@ -53,7 +53,7 @@ pub async fn refresh(
 /// POST /api/v1/auth/logout
 #[utoipa::path(
     post,
-    path = "/api/v1/auth/logout",
+    path = "/logout",
     tag = "Auth",
     request_body = LogoutCommand,
     responses(

@@ -36,6 +36,7 @@ pub struct User {
     pub address: Option<String>,
     pub age: Option<i16>,
     pub wallet_address: Option<String>,
+    pub verified: bool,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
     base: AggregateBase,
@@ -77,6 +78,7 @@ impl User {
             address: None,
             age: None,
             wallet_address: None,
+            verified: false,
             created_at: now,
             updated_at: now,
             base,
@@ -94,6 +96,7 @@ impl User {
         address: Option<String>,
         age: Option<i16>,
         wallet_address: Option<String>,
+        verified: bool,
         created_at: DateTime<Utc>,
         updated_at: DateTime<Utc>,
     ) -> Self {
@@ -107,6 +110,7 @@ impl User {
             address,
             age,
             wallet_address,
+            verified,
             created_at,
             updated_at,
             base: AggregateBase::new(),
@@ -120,6 +124,7 @@ impl User {
         address: Option<String>,
         age: Option<i16>,
         wallet_address: Option<String>,
+        verified: bool,
     ) -> Result<(), DomainError> {
         if full_name.trim().is_empty() {
             return Err(DomainError::ValidationError(
@@ -137,6 +142,7 @@ impl User {
         self.address = address;
         self.age = age;
         self.wallet_address = wallet_address;
+        self.verified = verified;
         self.updated_at = Utc::now();
         self.base.record_event(Box::new(UserUpdated {
             user_id: self.id,

@@ -33,6 +33,7 @@ struct UserRow {
     address: Option<String>,
     age: Option<i16>,
     wallet_address: Option<String>,
+    verified: bool,
     created_at: chrono::DateTime<chrono::Utc>,
     updated_at: chrono::DateTime<chrono::Utc>,
 }
@@ -63,6 +64,7 @@ impl TryFrom<UserRow> for User {
             row.address,
             row.age,
             row.wallet_address,
+            row.verified,
             row.created_at,
             row.updated_at,
         ))
@@ -75,7 +77,7 @@ impl UserRepository for PgUserRepository {
         let row: Option<UserRow> = sqlx::query_as(
             r#"SELECT id, email, password_hash, full_name,
                       role::text, status::text,
-                      address, age, wallet_address,
+                      address, age, wallet_address, verified,
                       created_at, updated_at
                FROM users WHERE id = $1"#,
         )
@@ -91,7 +93,7 @@ impl UserRepository for PgUserRepository {
         let row: Option<UserRow> = sqlx::query_as(
             r#"SELECT id, email, password_hash, full_name,
                       role::text, status::text,
-                      address, age, wallet_address,
+                      address, age, wallet_address, verified,
                       created_at, updated_at
                FROM users WHERE email = $1"#,
         )
@@ -109,8 +111,8 @@ impl UserRepository for PgUserRepository {
 
         sqlx::query(
             r#"INSERT INTO users
-               (id, email, password_hash, full_name, role, status, address, age, wallet_address, created_at, updated_at)
-               VALUES ($1, $2, $3, $4, $5::user_role, $6::user_status, $7, $8, $9, $10, $11)"#,
+               (id, email, password_hash, full_name, role, status, address, age, wallet_address, verified, created_at, updated_at)
+               VALUES ($1, $2, $3, $4, $5::user_role, $6::user_status, $7, $8, $9, $10, $11, $12)"#,
         )
         .bind(user.id)
         .bind(user.email.value())
@@ -121,6 +123,7 @@ impl UserRepository for PgUserRepository {
         .bind(&user.address)
         .bind(user.age)
         .bind(&user.wallet_address)
+        .bind(user.verified)
         .bind(user.created_at)
         .bind(user.updated_at)
         .execute(&self.pool)
@@ -137,7 +140,7 @@ impl UserRepository for PgUserRepository {
             r#"UPDATE users
                SET full_name = $2, status = $3::user_status,
                    address = $4, age = $5, wallet_address = $6,
-                   updated_at = $7
+                   verified = $7, updated_at = $8
                WHERE id = $1"#,
         )
         .bind(user.id)
@@ -146,11 +149,23 @@ impl UserRepository for PgUserRepository {
         .bind(&user.address)
         .bind(user.age)
         .bind(&user.wallet_address)
+        .bind(user.verified)
         .bind(user.updated_at)
         .execute(&self.pool)
         .await
         .map_err(|e| DomainError::InfrastructureError(e.to_string()))?;
 
+        Ok(())
+    }
+
+    async fn set_verified(&self, id: Uuid) -> Result<(), DomainError> {
+        sqlx::query(
+            r#"UPDATE users SET verified = true, updated_at = NOW() WHERE id = $1"#,
+        )
+        .bind(id)
+        .execute(&self.pool)
+        .await
+        .map_err(|e| DomainError::InfrastructureError(e.to_string()))?;
         Ok(())
     }
 

@@ -24,4 +24,8 @@ pub struct UpdateUserCommand {
     /// Địa chỉ ví (tối đa 255 ký tự)
     #[validate(length(max = 255, message = "Wallet address must be at most 255 characters"))]
     pub wallet_address: Option<String>,
+
+    /// Trạng thái xác minh
+    #[serde(default)]
+    pub verified: bool,
 }
