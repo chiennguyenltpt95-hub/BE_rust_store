@@ -4,5 +4,3 @@ ALTER TABLE users ADD COLUMN address         VARCHAR(500);
 ALTER TABLE users ADD COLUMN age             SMALLINT;
 ALTER TABLE users ADD COLUMN wallet_address  VARCHAR(255);
 ALTER TABLE users ADD COLUMN verified        BOOLEAN DEFAULT FALSE;
-
-
