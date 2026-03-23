@@ -86,7 +86,7 @@ fn build_proto_payload(
                 user_id: json_str(json, "user_id"),
                 email: json_str(json, "email"),
                 full_name: json_str(json, "full_name"),
-                role: json_str(json, "role"),
+                token_verify: json_str(json, "token_verify"),
             })
         }
         "user.updated" => {

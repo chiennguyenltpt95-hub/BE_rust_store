@@ -25,7 +25,7 @@ message UserCreatedEvent {
   string user_id   = 1;
   string email     = 2;
   string full_name = 3;
-  string role      = 4;
+  string token_verify = 4;
 }
 
 message UserUpdatedEvent {
