@@ -9,6 +9,7 @@ pub struct UserCreated {
     pub full_name: String,
     pub role: String,
     pub occurred_at: DateTime<Utc>,
+    pub token_verify: String,
 }
 
 impl DomainEvent for UserCreated {
@@ -67,6 +68,33 @@ impl DomainEvent for UserDeleted {
     fn occurred_at(&self) -> DateTime<Utc> {
         self.occurred_at
     }
+    fn payload(&self) -> serde_json::Value {
+        serde_json::to_value(self).unwrap_or_default()
+    }
+}
+
+#[derive(Debug, serde::Serialize)]
+pub struct UserVerificationRequested {
+    pub user_id: Uuid,
+    pub email: String,
+    pub full_name: String,
+    pub token_verify: String,
+    pub occurred_at: DateTime<Utc>,
+}
+
+impl DomainEvent for UserVerificationRequested {
+    fn event_type(&self) -> &str {
+        "user.verify_requested"
+    }
+
+    fn aggregate_id(&self) -> Uuid {
+        self.user_id
+    }
+
+    fn occurred_at(&self) -> DateTime<Utc> {
+        self.occurred_at
+    }
+
     fn payload(&self) -> serde_json::Value {
         serde_json::to_value(self).unwrap_or_default()
     }

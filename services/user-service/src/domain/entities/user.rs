@@ -45,10 +45,12 @@ pub struct User {
 impl User {
     /// Factory method — tạo user mới (dùng qua Command handler)
     pub fn create(
+        id: Uuid,
         email: Email,
         password: HashedPassword,
         full_name: String,
         role: UserRole,
+        token_verify: String,
     ) -> Result<Self, DomainError> {
         if full_name.trim().is_empty() {
             return Err(DomainError::ValidationError(
@@ -56,7 +58,6 @@ impl User {
             ));
         }
 
-        let id = Uuid::new_v4();
         let now = Utc::now();
 
         let mut base = AggregateBase::new();
@@ -66,6 +67,7 @@ impl User {
             full_name: full_name.clone(),
             role: format!("{:?}", role),
             occurred_at: now,
+            token_verify: token_verify.clone(),
         }));
 
         Ok(Self {

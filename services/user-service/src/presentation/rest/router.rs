@@ -1,4 +1,4 @@
-use axum::{routing::get, Router};
+use axum::{middleware, routing::get, Router};
 use std::sync::Arc;
 use std::time::Duration;
 use tower_http::cors::CorsLayer;
@@ -9,11 +9,12 @@ use utoipa_axum::{router::OpenApiRouter, routes};
 use utoipa_swagger_ui::SwaggerUi;
 
 use super::auth_handler;
+use super::jwt_auth;
 use super::user_handler;
 use crate::application::commands::auth::{
     LoginCommand, LogoutCommand, RefreshTokenCommand, TokenPair,
 };
-use crate::application::commands::{CreateUserCommand, UpdateUserCommand};
+use crate::application::commands::{CreateUserCommand, UpdateUserCommand, VerifyTokenCommand};
 use crate::application::queries::get_user::UserView;
 use crate::application::queries::list_users::UserSummary;
 use crate::application::services::auth_service::AuthAppService;
@@ -33,6 +34,7 @@ use crate::application::services::UserAppService;
     components(schemas(
         CreateUserCommand,
         UpdateUserCommand,
+        VerifyTokenCommand,
         UserView,
         UserSummary,
         LoginCommand,
@@ -55,14 +57,29 @@ pub fn build_router(
     auth_service: Arc<AuthAppService>,
 ) -> Router {
     // split_for_parts() TRƯỚC with_state() — with_state() trả về Router, không phải OpenApiRouter
-    let (user_router, user_api) = OpenApiRouter::new()
-        .routes(routes!(user_handler::create_user, user_handler::list_users))
+    let (user_public_router, user_public_api) = OpenApiRouter::new()
+        .routes(routes!(user_handler::create_user))
+        .split_for_parts();
+
+    let (user_protected_router, user_protected_api) = OpenApiRouter::new()
+        .routes(routes!(user_handler::list_users))
         .routes(routes!(
             user_handler::get_user,
             user_handler::update_user,
             user_handler::delete_user
         ))
         .split_for_parts();
+
+    let (me_api_router, me_api) = OpenApiRouter::new()
+        .routes(routes!(user_handler::get_me))
+        .split_for_parts();
+
+    let verify_router = Router::new()
+        .route(
+            "/api/v1/users/verify/:token",
+            get(user_handler::verify_token),
+        )
+        .with_state(user_service.clone());
 
     let (auth_router, auth_api) = OpenApiRouter::new()
         .routes(routes!(auth_handler::login))
@@ -73,10 +90,10 @@ pub fn build_router(
     // Merge tất cả paths vào một OpenApi document, thêm prefix cho đúng route thực tế
     let mut api = ApiDoc::openapi();
 
-    let mut user_api = user_api;
-    let user_paths: Vec<_> = user_api.paths.paths.keys().cloned().collect();
-    for old_path in user_paths {
-        if let Some(item) = user_api.paths.paths.remove(&old_path) {
+    let mut user_public_api = user_public_api;
+    let user_public_paths: Vec<_> = user_public_api.paths.paths.keys().cloned().collect();
+    for old_path in user_public_paths {
+        if let Some(item) = user_public_api.paths.paths.remove(&old_path) {
             let new_path = format!("/api/v1/users{old_path}");
             let new_path = new_path.trim_end_matches('/').to_string();
             let new_path = if new_path.is_empty() {
@@ -84,9 +101,43 @@ pub fn build_router(
             } else {
                 new_path
             };
-            user_api.paths.paths.insert(new_path, item);
+            user_public_api.paths.paths.insert(new_path, item);
         }
     }
+
+    let mut user_protected_api = user_protected_api;
+    let user_protected_paths: Vec<_> = user_protected_api.paths.paths.keys().cloned().collect();
+    for old_path in user_protected_paths {
+        if let Some(item) = user_protected_api.paths.paths.remove(&old_path) {
+            let new_path = format!("/api/v1/users{old_path}");
+            let new_path = new_path.trim_end_matches('/').to_string();
+            let new_path = if new_path.is_empty() {
+                "/".to_string()
+            } else {
+                new_path
+            };
+            user_protected_api.paths.paths.insert(new_path, item);
+        }
+    }
+
+    let mut me_api = me_api;
+    let me_paths: Vec<_> = me_api.paths.paths.keys().cloned().collect();
+    for old_path in me_paths {
+        if let Some(item) = me_api.paths.paths.remove(&old_path) {
+            let new_path = format!("/api/v1/users{old_path}");
+            let new_path = new_path.trim_end_matches('/').to_string();
+            let new_path = if new_path.is_empty() {
+                "/".to_string()
+            } else {
+                new_path
+            };
+            me_api.paths.paths.insert(new_path, item);
+        }
+    }
+
+    let mut user_api = user_public_api;
+    user_api.merge(user_protected_api);
+    user_api.merge(me_api);
 
     let mut auth_api = auth_api;
     let auth_paths: Vec<_> = auth_api.paths.paths.keys().cloned().collect();
@@ -106,8 +157,20 @@ pub fn build_router(
     api.merge(user_api);
     api.merge(auth_api);
 
+    let user_public_router = user_public_router.with_state(user_service.clone());
+    let user_protected_router = user_protected_router
+        .with_state(user_service.clone())
+        .route_layer(middleware::from_fn(jwt_auth::require_jwt));
+
+    let me_router = me_api_router
+        .with_state(user_service)
+        .route_layer(middleware::from_fn(jwt_auth::require_jwt));
+
     Router::new()
-        .nest("/api/v1/users", user_router.with_state(user_service))
+        .merge(verify_router)
+        .nest("/api/v1/users", me_router)
+        .nest("/api/v1/users", user_public_router)
+        .nest("/api/v1/users", user_protected_router)
         .nest("/api/v1/auth", auth_router.with_state(auth_service))
         .route("/health", get(health_check))
         .route("/ready", get(readiness_check))

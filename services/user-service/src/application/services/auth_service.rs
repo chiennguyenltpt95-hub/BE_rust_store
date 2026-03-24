@@ -8,16 +8,19 @@ use validator::Validate;
 use crate::application::commands::auth::{
     LoginCommand, LogoutCommand, RefreshTokenCommand, TokenPair,
 };
+use crate::domain::events::user_events::UserVerificationRequested;
 use crate::domain::repositories::token_repository::{RefreshToken, TokenRepository};
 use crate::domain::repositories::UserRepository;
 use crate::domain::value_objects::Email;
 use crate::infrastructure::auth::{
     generate_refresh_token, hash_token, JwtService, ACCESS_TOKEN_TTL_SECS, REFRESH_TOKEN_TTL_DAYS,
 };
+use crate::infrastructure::messaging::EventPublisher;
 
 pub struct AuthAppService {
     user_repo: Arc<dyn UserRepository>,
     token_repo: Arc<dyn TokenRepository>,
+    event_publisher: Arc<dyn EventPublisher>,
     jwt: JwtService,
 }
 
@@ -25,11 +28,13 @@ impl AuthAppService {
     pub fn new(
         user_repo: Arc<dyn UserRepository>,
         token_repo: Arc<dyn TokenRepository>,
+        event_publisher: Arc<dyn EventPublisher>,
         jwt_secret: &str,
     ) -> Self {
         Self {
             user_repo,
             token_repo,
+            event_publisher,
             jwt: JwtService::new(jwt_secret),
         }
     }
@@ -52,6 +57,30 @@ impl AuthAppService {
         if !user.password.verify(&cmd.password) {
             return Err(DomainError::Unauthorized(
                 "Invalid email or password".into(),
+            ));
+        }
+
+        if !user.verified {
+            let verify_token = self.jwt.generate_access_token(
+                user.id,
+                serde_json::json!({
+                    "role": format!("{:?}", user.role),
+                    "purpose": "verify_email",
+                }),
+            )?;
+
+            let event = UserVerificationRequested {
+                user_id: user.id,
+                email: user.email.value().to_string(),
+                full_name: user.full_name.clone(),
+                token_verify: verify_token,
+                occurred_at: Utc::now(),
+            };
+
+            self.event_publisher.publish(&event).await?;
+
+            return Err(DomainError::Unauthorized(
+                "Account is not verified. A new verification email has been sent.".into(),
             ));
         }
 
@@ -101,7 +130,13 @@ impl AuthAppService {
     // ── HELPERS ──────────────────────────────────────────────────────────────
 
     async fn issue_token_pair(&self, user_id: Uuid, role: &str) -> Result<TokenPair, DomainError> {
-        let access_token = self.jwt.generate_access_token(user_id, role)?;
+        let access_token = self.jwt.generate_access_token(
+            user_id,
+            serde_json::json!({
+                "role": role,
+                "purpose": "access",
+            }),
+        )?;
 
         let raw_refresh = generate_refresh_token();
         let token_hash = hash_token(&raw_refresh);

@@ -59,6 +59,7 @@ async fn main() -> Result<()> {
         std::sync::Arc::new(application::services::auth_service::AuthAppService::new(
             user_repo.clone(),
             token_repo,
+            event_publisher.clone(),
             &cfg.jwt_secret,
         ));
 

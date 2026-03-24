@@ -59,8 +59,19 @@ impl UserAppService {
 
         let password = HashedPassword::from_raw(&cmd.password)?;
         let role = UserRole::Customer; // Default role — production có thể cho chọn
+        let user_id = Uuid::new_v4();
 
-        let mut user = User::create(email, password, cmd.full_name, role)?;
+        let jwt_token = self
+            .jwt
+            .generate_access_token(
+                user_id,
+                serde_json::json!({
+                    "role": format!("{:?}", role),
+                    "purpose": "verify_email",
+                }),
+            )?;
+
+        let mut user = User::create(user_id, email, password, cmd.full_name, role, jwt_token)?;
 
         // Persist
         self.user_repo.save(&user).await?;
@@ -166,6 +177,15 @@ impl UserAppService {
         }
 
         let claims = self.jwt.verify_access_token(&cmd.token)?;
+        let purpose = claims
+            .payload
+            .get("purpose")
+            .and_then(|v| v.as_str())
+            .unwrap_or_default();
+        if purpose != "verify_email" {
+            return Err(DomainError::Unauthorized("Invalid verification token".into()));
+        }
+
         let user_id = Uuid::parse_str(&claims.sub)
             .map_err(|_| DomainError::Unauthorized("Invalid user_id in token".into()))?;
 

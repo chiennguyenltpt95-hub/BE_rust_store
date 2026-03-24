@@ -103,6 +103,16 @@ fn build_proto_payload(
                 user_id: json_str(json, "user_id"),
             })
         }
+        "user.verify_requested" => {
+            proto::domain_event_envelope::Payload::UserVerificationRequested(
+                proto::UserVerificationRequestedEvent {
+                    user_id: json_str(json, "user_id"),
+                    email: json_str(json, "email"),
+                    full_name: json_str(json, "full_name"),
+                    token_verify: json_str(json, "token_verify"),
+                },
+            )
+        }
         _ => {
             proto::domain_event_envelope::Payload::UserCreated(proto::UserCreatedEvent::default())
         }

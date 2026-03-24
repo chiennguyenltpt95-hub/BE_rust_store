@@ -1,6 +1,7 @@
 use axum::{
-    extract::{Path, Query, State},
+    extract::{Extension, Path, Query, State},
     http::StatusCode,
+    response::Redirect,
     Json,
 };
 use std::sync::Arc;
@@ -39,10 +40,10 @@ pub async fn create_user(
     }
 }
 
-/// GET /api/v1/users/:id
+/// GET /api/v1/users/id/:id
 #[utoipa::path(
     get,
-    path = "/{id}",
+    path = "/id/{id}",
     tag = "Users",
     params(("id" = Uuid, Path, description = "User ID")),
     responses(
@@ -55,6 +56,30 @@ pub async fn get_user(
     Path(id): Path<Uuid>,
 ) -> Result<Json<ApiResponse<UserView>>, (StatusCode, Json<ApiResponse<()>>)> {
     match svc.get_user(id).await {
+        Ok(view) => Ok(Json(ApiResponse::success(view))),
+        Err(e) => {
+            let (status, msg) = map_domain_error(&e);
+            Err((status, Json(ApiResponse::error(msg))))
+        }
+    }
+}
+
+/// GET /api/v1/users/me
+#[utoipa::path(
+    get,
+    path = "/me",
+    tag = "Users",
+    responses(
+        (status = 200, description = "Current user info", body = UserView),
+        (status = 401, description = "Unauthorized"),
+        (status = 404, description = "User not found"),
+    )
+)]
+pub async fn get_me(
+    State(svc): State<Arc<UserAppService>>,
+    Extension(user_id): Extension<Uuid>,
+) -> Result<Json<ApiResponse<UserView>>, (StatusCode, Json<ApiResponse<()>>)> {
+    match svc.get_user(user_id).await {
         Ok(view) => Ok(Json(ApiResponse::success(view))),
         Err(e) => {
             let (status, msg) = map_domain_error(&e);
@@ -86,10 +111,10 @@ pub async fn list_users(
     }
 }
 
-/// PUT /api/v1/users/:id
+/// PUT /api/v1/users/id/:id
 #[utoipa::path(
     put,
-    path = "/{id}",
+    path = "/id/{id}",
     tag = "Users",
     params(("id" = Uuid, Path, description = "User ID")),
     request_body = UpdateUserCommand,
@@ -113,10 +138,10 @@ pub async fn update_user(
     }
 }
 
-/// DELETE /api/v1/users/:id
+/// DELETE /api/v1/users/id/:id
 #[utoipa::path(
     delete,
-    path = "/{id}",
+    path = "/id/{id}",
     tag = "Users",
     params(("id" = Uuid, Path, description = "User ID")),
     responses(
@@ -138,27 +163,52 @@ pub async fn delete_user(
 }
 
 #[utoipa::path(
-    post,
-    path = "/verify={token}",
+    get,
+    path = "/verify/{token}",
     tag = "Users",
-    request_body = VerifyTokenCommand,
+    params(("token" = String, Path, description = "Email verification token")),
     responses(
-        (status = 200, description = "Verification successful"),
-        (status = 401, description = "Invalid credentials"),
+        (status = 307, description = "Redirect after verification"),
     )
 )]
 pub async fn verify_token(
     State(svc): State<Arc<UserAppService>>,
     Path(token): Path<String>,
-) -> Result<Json<ApiResponse<()>>, (StatusCode, Json<ApiResponse<()>>)> {
-    let result = svc.verify_token(VerifyTokenCommand { token }).await;
-    match result {
-        Ok(_) => Ok(Json(ApiResponse::success(()))),
+) -> Redirect {
+    let redirect_base = std::env::var("VERIFY_REDIRECT_URL")
+        .unwrap_or_else(|_| "http://localhost:5173/verify-result".to_string());
+
+    match svc.verify_token(VerifyTokenCommand { token }).await {
+        Ok(_) => Redirect::temporary(&build_verify_redirect(&redirect_base, "success", None)),
         Err(e) => {
-            let (status, msg) = map_domain_error(&e);
-            Err((status, Json(ApiResponse::error(msg))))
+            let reason = match e {
+                domain_core::error::DomainError::Unauthorized(_) => "unauthorized",
+                domain_core::error::DomainError::ValidationError(_) => "invalid_request",
+                domain_core::error::DomainError::NotFound(_) => "user_not_found",
+                _ => "internal_error",
+            };
+            Redirect::temporary(&build_verify_redirect(
+                &redirect_base,
+                "failed",
+                Some(reason),
+            ))
         }
     }
+}
+
+fn build_verify_redirect(base: &str, status: &str, reason: Option<&str>) -> String {
+    let mut url = if base.contains('?') {
+        format!("{}&status={}", base, status)
+    } else {
+        format!("{}?status={}", base, status)
+    };
+
+    if let Some(reason) = reason {
+        url.push_str("&reason=");
+        url.push_str(reason);
+    }
+
+    url
 }
 
 fn map_domain_error(err: &domain_core::error::DomainError) -> (StatusCode, String) {

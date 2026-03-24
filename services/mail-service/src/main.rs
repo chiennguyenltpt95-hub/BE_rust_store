@@ -11,6 +11,7 @@ mod presentation;
 
 use domain::models::MailAddress;
 use domain::ports::MailTransport;
+use crate::application::template_factory::{WelcomeMailCommandFactory, WelcomeMailFactoryConfig};
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -59,17 +60,27 @@ async fn main() -> Result<()> {
         default_from,
     ));
 
+    let welcome_factory = Arc::new(WelcomeMailCommandFactory::new(WelcomeMailFactoryConfig {
+        verify_base_url: cfg.welcome_verify_base_url.clone(),
+        cta_text: cfg.welcome_cta_text.clone(),
+        product_name: cfg.welcome_product_name.clone(),
+        support_email: cfg.welcome_support_email.clone(),
+        subject: cfg.welcome_subject.clone(),
+    }));
+
     // ── Kafka Event Listener (background task) ─────────────────
     let kafka_brokers = cfg.kafka_brokers.clone();
     let kafka_topic = cfg.kafka_topic.clone();
     let kafka_group = cfg.kafka_group_id.clone();
     let mail_svc_clone = mail_svc.clone();
+    let welcome_factory_clone = welcome_factory.clone();
     tokio::spawn(async move {
         if let Err(e) = presentation::event_listener::start_event_listener(
             &kafka_brokers,
             &kafka_topic,
             &kafka_group,
             mail_svc_clone,
+            welcome_factory_clone,
         )
         .await
         {
