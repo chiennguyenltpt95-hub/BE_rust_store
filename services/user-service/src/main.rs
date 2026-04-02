@@ -17,19 +17,21 @@ async fn main() -> Result<()> {
     // Fallback: load từ thư mục hiện tại
     dotenvy::dotenv().ok();
 
-    // Khởi tạo tracing / OpenTelemetry
-    infrastructure::telemetry::init_tracing("user-service")?;
-
-    info!("Starting user-service...");
-
     // Load config
     let cfg = config::AppConfig::from_env()?;
+
+    // Khởi tạo tracing / OpenTelemetry
+    infrastructure::telemetry::init_tracing(&cfg.service_name)?;
+
+    info!(service = %cfg.service_name, "Starting service...");
 
     // Khởi tạo DB pool
     let db_pool = infrastructure::persistence::create_pool(&cfg.database_url).await?;
 
-    // Migrations
-    sqlx::migrate!("./migrations").run(&db_pool).await?;
+    // Migrations: shared DB for multiple services, ignore versions from other services.
+    let mut migrator = sqlx::migrate!("./migrations");
+    migrator.set_ignore_missing(true);
+    migrator.run(&db_pool).await?;
 
     // Khởi tạo Kafka producer
     let event_publisher = std::sync::Arc::new(infrastructure::messaging::KafkaEventPublisher::new(
@@ -67,7 +69,7 @@ async fn main() -> Result<()> {
     let router = presentation::rest::router::build_router(user_app_service, auth_app_service);
 
     let addr: std::net::SocketAddr = cfg.http_addr.parse()?;
-    info!("Listening on {}", addr);
+    info!(service = %cfg.service_name, "Listening on {}", addr);
 
     let listener = tokio::net::TcpListener::bind(addr).await?;
     axum::serve(listener, router).await?;

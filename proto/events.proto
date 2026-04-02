@@ -16,6 +16,8 @@ message DomainEventEnvelope {
     UserUpdatedEvent   user_updated   = 11;
     UserDeletedEvent   user_deleted   = 12;
     UserVerificationRequestedEvent user_verification_requested = 13;
+    CheckoutCreatedNotificationEvent checkout_created_notification = 14;
+    OrderConfirmedMailEvent order_confirmed_mail = 15;
   }
 }
 
@@ -46,4 +48,32 @@ message UserVerificationRequestedEvent {
   string email = 2;
   string full_name = 3;
   string token_verify = 4;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// Checkout / Notification events
+// ═══════════════════════════════════════════════════════════════
+message CheckoutCreatedNotificationEvent {
+  string checkout_id = 1;
+  string user_id = 2;
+  string cart_id = 3;
+  int64 amount_cents = 4;
+  string currency = 5;
+  string checkout_url = 6;
+  string channel = 7;
+  string recipient = 8;
+  string template_name = 9;
+  string payload_json = 10;
+  int32 max_attempts = 11;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// Order / Mail events
+// ═══════════════════════════════════════════════════════════════
+message OrderConfirmedMailEvent {
+  string to = 1;
+  string to_name = 2;
+  string subject = 3;
+  string template_name = 4;
+  string context_json = 5;
 }

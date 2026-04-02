@@ -11,9 +11,17 @@ use crate::domain::value_objects::Email;
 pub trait UserRepository: Send + Sync {
     async fn find_by_id(&self, id: Uuid) -> Result<Option<User>, DomainError>;
     async fn find_by_email(&self, email: &Email) -> Result<Option<User>, DomainError>;
+    async fn list_users(
+        &self,
+        role: Option<&str>,
+        status: Option<&str>,
+        limit: i64,
+        offset: i64,
+    ) -> Result<Vec<User>, DomainError>;
     async fn save(&self, user: &User) -> Result<(), DomainError>;
     async fn update(&self, user: &User) -> Result<(), DomainError>;
     async fn set_verified(&self, id: Uuid) -> Result<(), DomainError>;
+    #[allow(dead_code)]
     async fn delete(&self, id: Uuid) -> Result<(), DomainError>;
     async fn exists_by_email(&self, email: &Email) -> Result<bool, DomainError>;
 }

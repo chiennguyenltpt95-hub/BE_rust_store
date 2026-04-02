@@ -4,12 +4,14 @@ use redis::{Client, Commands};
 
 /// Trait cho cache — application layer chỉ biết trait này
 #[async_trait]
+#[allow(dead_code)]
 pub trait CacheService: Send + Sync {
     fn set(&self, key: &str, value: &str, ttl_seconds: u64) -> Result<(), DomainError>;
     fn get(&self, key: &str) -> Result<Option<String>, DomainError>;
     fn delete(&self, key: &str) -> Result<(), DomainError>;
 }
 
+#[allow(dead_code)]
 pub struct RedisCache {
     client: Client,
 }
@@ -30,7 +32,8 @@ impl CacheService for RedisCache {
             .client
             .get_connection()
             .map_err(|e| DomainError::InfrastructureError(format!("Redis error: {}", e)))?;
-        let _: () = conn.set_ex(key, value, ttl_seconds)
+        let _: () = conn
+            .set_ex(key, value, ttl_seconds)
             .map_err(|e| DomainError::InfrastructureError(format!("Redis set error: {}", e)))?;
         Ok(())
     }
@@ -51,7 +54,8 @@ impl CacheService for RedisCache {
             .client
             .get_connection()
             .map_err(|e| DomainError::InfrastructureError(format!("Redis error: {}", e)))?;
-        let _: () = conn.del(key)
+        let _: () = conn
+            .del(key)
             .map_err(|e| DomainError::InfrastructureError(format!("Redis del error: {}", e)))?;
         Ok(())
     }

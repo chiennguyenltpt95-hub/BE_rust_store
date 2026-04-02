@@ -1,4 +1,5 @@
 use domain_core::pagination::PageRequest;
+use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use utoipa::{IntoParams, ToSchema};
 
@@ -35,4 +36,6 @@ pub struct UserSummary {
     pub age: Option<i16>,
     pub wallet_address: Option<String>,
     pub verified: bool,
+    pub created_at: DateTime<Utc>,
+    pub updated_at: DateTime<Utc>,
 }

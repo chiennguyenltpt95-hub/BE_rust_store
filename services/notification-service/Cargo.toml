@@ -1,0 +1,33 @@
+[package]
+name = "notification-service"
+version = "0.1.0"
+edition = "2021"
+
+[[bin]]
+name = "notification-service"
+path = "src/main.rs"
+
+[dependencies]
+tokio = { workspace = true }
+axum = { workspace = true }
+tower-http = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+sqlx = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+uuid = { workspace = true }
+chrono = { workspace = true }
+thiserror = { workspace = true }
+anyhow = { workspace = true }
+dotenvy = { workspace = true }
+prometheus = { workspace = true }
+once_cell = { workspace = true }
+async-trait = { workspace = true }
+reqwest = { version = "0.12", default-features = false, features = ["rustls-tls", "json"] }
+rdkafka = { workspace = true }
+prost = { workspace = true }
+futures = "0.3"
+
+[build-dependencies]
+prost-build = "0.12"

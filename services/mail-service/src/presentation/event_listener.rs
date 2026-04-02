@@ -6,10 +6,9 @@ use rdkafka::consumer::{CommitMode, Consumer, StreamConsumer};
 use rdkafka::message::Message as KafkaMessage;
 use tracing::{error, info, warn};
 
+use crate::application::commands::SendTemplatedMailCommand;
 use crate::application::services::MailAppService;
-use crate::application::template_factory::{
-    UserCreatedPayload, WelcomeMailCommandFactory,
-};
+use crate::application::template_factory::{UserCreatedPayload, WelcomeMailCommandFactory};
 
 /// Generated protobuf types
 pub mod proto {
@@ -37,7 +36,10 @@ pub async fn start_event_listener(
         .subscribe(&[topic])
         .map_err(|e| anyhow::anyhow!("Failed to subscribe to topic '{}': {}", topic, e))?;
 
-    info!("Kafka event listener started (protobuf) — consuming topic '{}'", topic);
+    info!(
+        "Kafka event listener started (protobuf) — consuming topic '{}'",
+        topic
+    );
 
     use futures::StreamExt;
     let mut stream = consumer.stream();
@@ -66,6 +68,9 @@ pub async fn start_event_listener(
                                     )
                                     .await;
                                 }
+                                Some(proto::domain_event_envelope::Payload::OrderConfirmedMail(event)) => {
+                                    handle_order_confirmed_mail(&mail_svc, &event).await;
+                                }
                                 _ => {}
                             }
                         }
@@ -86,6 +91,40 @@ pub async fn start_event_listener(
     }
 
     Ok(())
+}
+
+async fn handle_order_confirmed_mail(
+    mail_svc: &MailAppService,
+    event: &proto::OrderConfirmedMailEvent,
+) {
+    if event.to.is_empty() {
+        warn!("order.confirmed.mail event missing recipient");
+        return;
+    }
+
+    let context: serde_json::Value =
+        serde_json::from_str(&event.context_json).unwrap_or_else(|_| serde_json::json!({}));
+
+    let cmd = SendTemplatedMailCommand {
+        to: event.to.clone(),
+        to_name: if event.to_name.is_empty() {
+            None
+        } else {
+            Some(event.to_name.clone())
+        },
+        template_name: event.template_name.clone(),
+        subject: event.subject.clone(),
+        context,
+    };
+
+    if let Err(e) = mail_svc.send_templated_mail(cmd).await {
+        error!(
+            "Failed to send order confirmation email to {}: {}",
+            event.to, e
+        );
+    } else {
+        info!("Order confirmation email sent to {}", event.to);
+    }
 }
 
 /// Xử lý event user.verify_requested → gửi lại email verify

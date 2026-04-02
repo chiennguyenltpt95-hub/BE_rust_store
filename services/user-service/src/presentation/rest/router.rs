@@ -10,6 +10,7 @@ use utoipa_swagger_ui::SwaggerUi;
 
 use super::auth_handler;
 use super::jwt_auth;
+use super::metrics;
 use super::user_handler;
 use crate::application::commands::auth::{
     LoginCommand, LogoutCommand, RefreshTokenCommand, TokenPair,
@@ -172,9 +173,11 @@ pub fn build_router(
         .nest("/api/v1/users", user_public_router)
         .nest("/api/v1/users", user_protected_router)
         .nest("/api/v1/auth", auth_router.with_state(auth_service))
+        .route("/metrics", get(metrics::metrics))
         .route("/health", get(health_check))
         .route("/ready", get(readiness_check))
         .merge(SwaggerUi::new("/swagger-ui").url("/api-docs/openapi.json", api))
+        .layer(axum::middleware::from_fn(metrics::track_metrics))
         .layer(TraceLayer::new_for_http())
         .layer(TimeoutLayer::new(Duration::from_secs(30)))
         .layer(CorsLayer::permissive())

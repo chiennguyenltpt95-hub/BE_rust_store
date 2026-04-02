@@ -2,8 +2,13 @@
 resolver = "2"
 members = ["services/mail-service",
     "services/user-service",
-    # "services/product-service",
-    # "services/order-service",
+    "services/product-service",
+    "services/cart-service",
+    "services/checkout-service",
+    "services/order-service",
+    "services/inventory-service",
+    "services/notification-service",
+    "services/shipping-service",
     "shared/domain-core",
 ]
 
@@ -56,3 +61,5 @@ hex = "0.4"
 utoipa = { version = "5", features = ["axum_extras", "chrono", "uuid"] }
 utoipa-swagger-ui = { version = "8", features = ["axum"] }
 utoipa-axum = "0.1"
+prometheus = "0.13"
+once_cell = "1"

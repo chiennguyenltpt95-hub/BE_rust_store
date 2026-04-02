@@ -3,11 +3,6 @@ use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
 use uuid::Uuid;
 
-#[derive(Debug)]
-pub struct GetUserQuery {
-    pub user_id: Uuid,
-}
-
 /// View model (DTO) trả về cho client
 #[derive(Debug, Serialize, Deserialize, ToSchema)]
 pub struct UserView {
@@ -26,4 +21,5 @@ pub struct UserView {
     pub wallet_address: Option<String>,
     pub verified: bool,
     pub created_at: DateTime<Utc>,
+    pub updated_at: DateTime<Utc>,
 }

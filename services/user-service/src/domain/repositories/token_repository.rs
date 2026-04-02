@@ -26,5 +26,6 @@ pub trait TokenRepository: Send + Sync {
     async fn save(&self, token: &RefreshToken) -> Result<(), DomainError>;
     async fn find_by_hash(&self, hash: &str) -> Result<Option<RefreshToken>, DomainError>;
     async fn revoke_by_hash(&self, hash: &str) -> Result<(), DomainError>;
+    #[allow(dead_code)]
     async fn revoke_all_for_user(&self, user_id: Uuid) -> Result<(), DomainError>;
 }

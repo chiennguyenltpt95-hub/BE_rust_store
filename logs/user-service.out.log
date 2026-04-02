@@ -1,0 +1,7 @@
+{"timestamp":"2026-04-02T08:52:49.086846Z","level":"INFO","fields":{"message":"Tracing initialized","service":"user-service"},"target":"user_service::infrastructure::telemetry"}
+{"timestamp":"2026-04-02T08:52:49.087138Z","level":"INFO","fields":{"message":"Starting service...","service":"user-service"},"target":"user_service"}
+{"timestamp":"2026-04-02T08:52:49.747781Z","level":"INFO","fields":{"message":"relation \"_sqlx_migrations\" already exists, skipping"},"target":"sqlx::postgres::notice"}
+{"timestamp":"2026-04-02T08:52:50.064804Z","level":"INFO","fields":{"message":"Kafka producer connected to localhost:9094"},"target":"user_service::infrastructure::messaging"}
+{"timestamp":"2026-04-02T08:52:50.068160Z","level":"INFO","fields":{"message":"Listening on 0.0.0.0:3001","service":"user-service"},"target":"user_service"}
+{"timestamp":"2026-04-02T08:53:34.868469Z","level":"INFO","fields":{"message":"User created","user_id":"ba080945-a22f-4970-ab18-fe59f7077142"},"target":"user_service::application::services::user_service","span":{"name":"create_user"},"spans":[{"name":"create_user"}]}
+{"timestamp":"2026-04-02T08:53:36.080597Z","level":"INFO","fields":{"message":"User created","user_id":"250b847d-ae9c-4ae5-a673-924d51cb6683"},"target":"user_service::application::services::user_service","span":{"name":"create_user"},"spans":[{"name":"create_user"}]}

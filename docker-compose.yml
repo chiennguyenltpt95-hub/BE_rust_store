@@ -1,3 +1,6 @@
+x-app-env: &app_env
+  DATABASE_URL: postgresql://db-jayden.c1gymyg48fuo.ap-southeast-1.rds.amazonaws.com:5432/postgres?user=jayden&password=db-jayden
+
 services:
   postgres:
     image: postgres:16-alpine
@@ -44,6 +47,12 @@ services:
     depends_on:
       - kafka
 
+  redis:
+    image: redis:7-alpine
+    container_name: be_store_redis
+    ports:
+      - '6379:6379'
+
   # ── Monitoring Stack ──────────────────────────────────────
   kafka-exporter:
     image: danielqsj/kafka-exporter:latest
@@ -60,10 +69,32 @@ services:
     volumes:
       - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
       - prometheus_data:/prometheus
+    extra_hosts:
+      - 'host.docker.internal:host-gateway'
     ports:
       - '9090:9090'
     depends_on:
       - kafka-exporter
+
+  loki:
+    image: grafana/loki:2.9.8
+    container_name: be_store_loki
+    command: ['-config.file=/etc/loki/loki-config.yml']
+    volumes:
+      - ./monitoring/loki-config.yml:/etc/loki/loki-config.yml
+      - loki_data:/loki
+    ports:
+      - '3100:3100'
+
+  promtail:
+    image: grafana/promtail:2.9.8
+    container_name: be_store_promtail
+    command: ['-config.file=/etc/promtail/promtail-config.yml']
+    volumes:
+      - ./monitoring/promtail-config.yml:/etc/promtail/promtail-config.yml
+      - ./logs:/var/log/app
+    depends_on:
+      - loki
 
   grafana:
     image: grafana/grafana:latest
@@ -80,9 +111,11 @@ services:
       - '3000:3000'
     depends_on:
       - prometheus
+      - loki
 
 volumes:
   pgdata:
   kafka_data:
   prometheus_data:
   grafana_data:
+  loki_data:

@@ -8,16 +8,6 @@ pub struct ApiResponse<T: Serialize> {
     pub error: Option<String>,
 }
 
-impl<T: Serialize> ApiResponse<T> {
-    pub fn success(data: T) -> Self {
-        Self {
-            success: true,
-            data: Some(data),
-            error: None,
-        }
-    }
-}
-
 impl ApiResponse<()> {
     pub fn error(message: impl Into<String>) -> Self {
         Self {

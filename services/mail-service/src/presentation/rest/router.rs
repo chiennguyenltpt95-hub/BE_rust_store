@@ -1,12 +1,15 @@
-use axum::Router;
+use axum::{routing::get, Router};
 use std::sync::Arc;
+use std::time::Duration;
 use tower_http::cors::CorsLayer;
+use tower_http::timeout::TimeoutLayer;
+use tower_http::trace::TraceLayer;
 use utoipa::OpenApi;
 use utoipa_axum::router::OpenApiRouter;
 use utoipa_swagger_ui::SwaggerUi;
 
+use super::{mail_handler, metrics};
 use crate::application::services::MailAppService;
-use super::mail_handler;
 
 #[derive(OpenApi)]
 #[openapi(
@@ -25,5 +28,19 @@ pub fn build_router(mail_svc: Arc<MailAppService>) -> Router {
 
     router
         .merge(SwaggerUi::new("/swagger-ui").url("/api-docs/openapi.json", api))
+        .route("/metrics", get(metrics::metrics))
+        .route("/health", get(health_check))
+        .route("/ready", get(readiness_check))
+        .layer(axum::middleware::from_fn(metrics::track_metrics))
+        .layer(TraceLayer::new_for_http())
+        .layer(TimeoutLayer::new(Duration::from_secs(30)))
         .layer(CorsLayer::permissive())
+}
+
+async fn health_check() -> &'static str {
+    "OK"
+}
+
+async fn readiness_check() -> &'static str {
+    "READY"
 }

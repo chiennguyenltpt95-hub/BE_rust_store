@@ -62,14 +62,14 @@ impl EventPublisher for KafkaEventPublisher {
         // Dùng aggregate_id làm key → đảm bảo thứ tự events cùng aggregate
         let key = event.aggregate_id().to_string();
 
-        let record = FutureRecord::to(&self.topic)
-            .key(&key)
-            .payload(&bytes);
+        let record = FutureRecord::to(&self.topic).key(&key).payload(&bytes);
 
         self.producer
             .send(record, Duration::from_secs(5))
             .await
-            .map_err(|(e, _)| DomainError::InfrastructureError(format!("Kafka publish error: {}", e)))?;
+            .map_err(|(e, _)| {
+                DomainError::InfrastructureError(format!("Kafka publish error: {}", e))
+            })?;
 
         Ok(())
     }
@@ -113,9 +113,7 @@ fn build_proto_payload(
                 },
             )
         }
-        _ => {
-            proto::domain_event_envelope::Payload::UserCreated(proto::UserCreatedEvent::default())
-        }
+        _ => proto::domain_event_envelope::Payload::UserCreated(proto::UserCreatedEvent::default()),
     }
 }
 
@@ -127,6 +125,7 @@ fn json_str(val: &serde_json::Value, key: &str) -> String {
 }
 
 /// Dùng trong dev/test — không publish thật
+#[allow(dead_code)]
 pub struct NoopEventPublisher;
 
 #[async_trait]

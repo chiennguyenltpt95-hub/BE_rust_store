@@ -21,7 +21,7 @@ use crate::infrastructure::messaging::EventPublisher;
 pub struct UserAppService {
     user_repo: Arc<dyn UserRepository>,
     event_publisher: Arc<dyn EventPublisher>,
-    cache: Arc<dyn CacheService>,
+    _cache: Arc<dyn CacheService>,
     jwt: JwtService,
 }
 
@@ -35,7 +35,7 @@ impl UserAppService {
         Self {
             user_repo,
             event_publisher,
-            cache,
+            _cache: cache,
             jwt,
         }
     }
@@ -58,18 +58,26 @@ impl UserAppService {
         }
 
         let password = HashedPassword::from_raw(&cmd.password)?;
-        let role = UserRole::Customer; // Default role — production có thể cho chọn
+        let role = match cmd.role.as_deref().map(str::to_lowercase).as_deref() {
+            Some("admin") => UserRole::Admin,
+            Some("seller") => UserRole::Seller,
+            Some("customer") | None => UserRole::Customer,
+            Some(other) => {
+                return Err(DomainError::ValidationError(format!(
+                    "Invalid role '{}'. Allowed values: admin, customer, seller",
+                    other
+                )))
+            }
+        };
         let user_id = Uuid::new_v4();
 
-        let jwt_token = self
-            .jwt
-            .generate_access_token(
-                user_id,
-                serde_json::json!({
-                    "role": format!("{:?}", role),
-                    "purpose": "verify_email",
-                }),
-            )?;
+        let jwt_token = self.jwt.generate_access_token(
+            user_id,
+            serde_json::json!({
+                "role": format!("{:?}", role),
+                "purpose": "verify_email",
+            }),
+        )?;
 
         let mut user = User::create(user_id, email, password, cmd.full_name, role, jwt_token)?;
 
@@ -154,16 +162,40 @@ impl UserAppService {
             wallet_address: user.wallet_address,
             verified: user.verified,
             created_at: user.created_at,
+            updated_at: user.updated_at,
         })
     }
 
     #[instrument(skip(self))]
-    pub async fn list_users(
-        &self,
-        _query: ListUsersQuery,
-    ) -> Result<Vec<UserSummary>, DomainError> {
-        // Placeholder — production dùng ReadRepository với filter / pagination
-        Ok(vec![])
+    pub async fn list_users(&self, query: ListUsersQuery) -> Result<Vec<UserSummary>, DomainError> {
+        let page_req = query.page_request();
+        let limit = page_req.size as i64;
+        let offset = (page_req.page * page_req.size) as i64;
+
+        let role = query.role.as_deref().map(str::to_lowercase);
+        let status = query.status.as_deref().map(str::to_lowercase);
+
+        let users = self
+            .user_repo
+            .list_users(role.as_deref(), status.as_deref(), limit, offset)
+            .await?;
+
+        Ok(users
+            .into_iter()
+            .map(|user| UserSummary {
+                id: user.id,
+                email: user.email.value().to_string(),
+                full_name: user.full_name,
+                role: format!("{:?}", user.role),
+                status: format!("{:?}", user.status),
+                address: user.address,
+                age: user.age,
+                wallet_address: user.wallet_address,
+                verified: user.verified,
+                created_at: user.created_at,
+                updated_at: user.updated_at,
+            })
+            .collect())
     }
 
     #[instrument(skip(self, cmd))]
@@ -183,7 +215,9 @@ impl UserAppService {
             .and_then(|v| v.as_str())
             .unwrap_or_default();
         if purpose != "verify_email" {
-            return Err(DomainError::Unauthorized("Invalid verification token".into()));
+            return Err(DomainError::Unauthorized(
+                "Invalid verification token".into(),
+            ));
         }
 
         let user_id = Uuid::parse_str(&claims.sub)

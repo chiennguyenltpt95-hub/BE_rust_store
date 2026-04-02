@@ -105,6 +105,35 @@ impl UserRepository for PgUserRepository {
         row.map(User::try_from).transpose()
     }
 
+    async fn list_users(
+        &self,
+        role: Option<&str>,
+        status: Option<&str>,
+        limit: i64,
+        offset: i64,
+    ) -> Result<Vec<User>, DomainError> {
+        let rows: Vec<UserRow> = sqlx::query_as(
+            r#"SELECT id, email, password_hash, full_name,
+                      role::text, status::text,
+                      address, age, wallet_address, verified,
+                      created_at, updated_at
+               FROM users
+               WHERE ($1::text IS NULL OR role::text = $1)
+                 AND ($2::text IS NULL OR status::text = $2)
+               ORDER BY created_at DESC
+               LIMIT $3 OFFSET $4"#,
+        )
+        .bind(role)
+        .bind(status)
+        .bind(limit)
+        .bind(offset)
+        .fetch_all(&self.pool)
+        .await
+        .map_err(|e| DomainError::InfrastructureError(e.to_string()))?;
+
+        rows.into_iter().map(User::try_from).collect()
+    }
+
     async fn save(&self, user: &User) -> Result<(), DomainError> {
         let role_str = format!("{:?}", user.role).to_lowercase();
         let status_str = format!("{:?}", user.status).to_lowercase();
@@ -159,13 +188,11 @@ impl UserRepository for PgUserRepository {
     }
 
     async fn set_verified(&self, id: Uuid) -> Result<(), DomainError> {
-        sqlx::query(
-            r#"UPDATE users SET verified = true, updated_at = NOW() WHERE id = $1"#,
-        )
-        .bind(id)
-        .execute(&self.pool)
-        .await
-        .map_err(|e| DomainError::InfrastructureError(e.to_string()))?;
+        sqlx::query(r#"UPDATE users SET verified = true, updated_at = NOW() WHERE id = $1"#)
+            .bind(id)
+            .execute(&self.pool)
+            .await
+            .map_err(|e| DomainError::InfrastructureError(e.to_string()))?;
         Ok(())
     }
 
