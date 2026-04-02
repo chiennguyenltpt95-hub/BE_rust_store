@@ -3,6 +3,7 @@ resolver = "2"
 members = ["services/mail-service",
     "services/user-service",
     "services/product-service",
+    "services/comment-service",
     "services/cart-service",
     "services/checkout-service",
     "services/order-service",

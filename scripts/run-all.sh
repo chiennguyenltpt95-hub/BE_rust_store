@@ -12,6 +12,7 @@ SERVICES=(
   "user-service:3001"
   "mail-service:3002"
   "product-service:3006"
+  "comment-service:3010"
   "cart-service:3003"
   "checkout-service:3004"
   "order-service:3005"

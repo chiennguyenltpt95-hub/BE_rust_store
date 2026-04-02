@@ -1,0 +1,6 @@
+{"timestamp":"2026-04-02T08:14:44.286584Z","level":"INFO","fields":{"message":"Tracing initialized","service":"checkout-service"},"target":"checkout_service::infrastructure::telemetry"}
+{"timestamp":"2026-04-02T08:14:44.286832Z","level":"INFO","fields":{"message":"Starting checkout-service..."},"target":"checkout_service"}
+{"timestamp":"2026-04-02T08:14:44.907860Z","level":"INFO","fields":{"message":"relation \"_sqlx_migrations\" already exists, skipping"},"target":"sqlx::postgres::notice"}
+{"timestamp":"2026-04-02T08:14:45.759803Z","level":"INFO","fields":{"message":"Listening on 0.0.0.0:3004","service":"checkout-service"},"target":"checkout_service"}
+{"timestamp":"2026-04-02T08:22:47.018170Z","level":"ERROR","fields":{"message":"response failed","classification":"Status code: 502 Bad Gateway","latency":"854 ms"},"target":"tower_http::trace::on_failure"}
+{"timestamp":"2026-04-02T08:23:48.806040Z","level":"ERROR","fields":{"message":"response failed","classification":"Status code: 502 Bad Gateway","latency":"357 ms"},"target":"tower_http::trace::on_failure"}

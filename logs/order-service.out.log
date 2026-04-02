@@ -1,0 +1,4 @@
+{"timestamp":"2026-04-02T08:14:35.287384Z","level":"INFO","fields":{"message":"Tracing initialized","service":"order-service"},"target":"order_service::infrastructure::telemetry"}
+{"timestamp":"2026-04-02T08:14:35.287705Z","level":"INFO","fields":{"message":"Starting order-service..."},"target":"order_service"}
+{"timestamp":"2026-04-02T08:14:35.954080Z","level":"INFO","fields":{"message":"relation \"_sqlx_migrations\" already exists, skipping"},"target":"sqlx::postgres::notice"}
+{"timestamp":"2026-04-02T08:14:37.022416Z","level":"INFO","fields":{"message":"Listening on 0.0.0.0:3005","service":"order-service"},"target":"order_service"}

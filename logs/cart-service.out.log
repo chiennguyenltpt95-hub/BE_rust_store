@@ -1,0 +1,4 @@
+{"timestamp":"2026-04-02T08:14:43.832890Z","level":"INFO","fields":{"message":"Tracing initialized","service":"cart-service"},"target":"cart_service::infrastructure::telemetry"}
+{"timestamp":"2026-04-02T08:14:43.833071Z","level":"INFO","fields":{"message":"Starting cart-service..."},"target":"cart_service"}
+{"timestamp":"2026-04-02T08:14:44.502986Z","level":"INFO","fields":{"message":"relation \"_sqlx_migrations\" already exists, skipping"},"target":"sqlx::postgres::notice"}
+{"timestamp":"2026-04-02T08:14:44.815502Z","level":"INFO","fields":{"message":"Listening on 0.0.0.0:3003","service":"cart-service"},"target":"cart_service"}
