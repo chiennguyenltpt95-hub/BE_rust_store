@@ -1,0 +1,16 @@
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on artifact directory
+warning: use of deprecated function `aws_config::from_env`: Use the `aws_config::defaults` function. If you don't care about future default behavior changes, you can continue to use this function by enabling the `behavior-version-latest` feature. Doing so will make this deprecation notice go away.
+  --> services\upload-service\src\application\services\upload_service.rs:42:41
+   |
+42 |         let shared_config = aws_config::from_env()
+   |                                         ^^^^^^^^
+   |
+   = note: `#[warn(deprecated)]` on by default
+
+warning: `upload-service` (bin "upload-service") generated 1 warning
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 4.72s
+     Running `target\debug\upload-service.exe`

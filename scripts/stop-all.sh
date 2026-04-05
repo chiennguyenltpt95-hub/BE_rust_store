@@ -9,6 +9,7 @@ SERVICES=(
   "user-service"
   "mail-service"
   "product-service"
+  "upload-service"
   "comment-service"
   "cart-service"
   "checkout-service"

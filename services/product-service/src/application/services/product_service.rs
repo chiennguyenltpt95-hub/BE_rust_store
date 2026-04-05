@@ -1,4 +1,5 @@
 use domain_core::error::DomainError;
+use serde_json::json;
 use std::sync::Arc;
 use tracing::instrument;
 use uuid::Uuid;
@@ -23,11 +24,17 @@ impl ProductAppService {
         cmd.validate()
             .map_err(|e| DomainError::ValidationError(e.to_string()))?;
 
+        self.validate_category_assignment(cmd.category_id).await?;
+
         let product = Product::create(
             Uuid::new_v4(),
             cmd.name,
             cmd.description,
+            cmd.sku,
             cmd.category_id,
+            cmd.product_type,
+            cmd.attributes.unwrap_or_else(|| json!({})),
+            cmd.image_urls.unwrap_or_default(),
             cmd.price_cents,
             cmd.stock,
         )?;
@@ -58,16 +65,25 @@ impl ProductAppService {
         cmd.validate()
             .map_err(|e| DomainError::ValidationError(e.to_string()))?;
 
+        self.validate_category_assignment(cmd.category_id).await?;
+
         let mut product = self
             .product_repo
             .find_by_id(id)
             .await?
             .ok_or_else(|| DomainError::NotFound(format!("Product {}", id)))?;
 
+        let attributes = cmd.attributes.unwrap_or_else(|| product.attributes.clone());
+        let image_urls = cmd.image_urls.unwrap_or_else(|| product.image_urls.clone());
+
         product.update(
             cmd.name,
             cmd.description,
+            cmd.sku,
             cmd.category_id,
+            cmd.product_type,
+            attributes,
+            image_urls,
             cmd.price_cents,
             cmd.stock,
         )?;
@@ -123,6 +139,56 @@ impl ProductAppService {
                     }
                 }
 
+                if let Some(sku) = &query.sku {
+                    let sku_matches = product
+                        .sku
+                        .as_ref()
+                        .map(|product_sku| product_sku.eq_ignore_ascii_case(sku))
+                        .unwrap_or(false);
+                    if !sku_matches {
+                        return false;
+                    }
+                }
+
+                if let Some(product_type) = &query.product_type {
+                    let type_matches = product
+                        .product_type
+                        .as_ref()
+                        .map(|kind| kind.eq_ignore_ascii_case(product_type))
+                        .unwrap_or(false);
+                    if !type_matches {
+                        return false;
+                    }
+                }
+
+                if let Some(category_slug) = &query.category_slug {
+                    let slug_matches = product
+                        .category_slug
+                        .as_ref()
+                        .map(|slug| slug.eq_ignore_ascii_case(category_slug))
+                        .unwrap_or(false);
+                    if !slug_matches {
+                        return false;
+                    }
+                }
+
+                if let Some(category_active) = query.category_active {
+                    if product.category_is_active != Some(category_active) {
+                        return false;
+                    }
+                }
+
+                if let Some(target_gender) = &query.target_gender {
+                    let gender_matches = product
+                        .category_target_gender
+                        .as_ref()
+                        .map(|gender| gender.eq_ignore_ascii_case(target_gender))
+                        .unwrap_or(false);
+                    if !gender_matches {
+                        return false;
+                    }
+                }
+
                 if let Some(max_price) = query.max_price_cents {
                     if product.price_cents > max_price {
                         return false;
@@ -139,5 +205,29 @@ impl ProductAppService {
             .collect();
 
         Ok(filtered)
+    }
+
+    async fn validate_category_assignment(
+        &self,
+        category_id: Option<Uuid>,
+    ) -> Result<(), DomainError> {
+        let Some(category_id) = category_id else {
+            return Ok(());
+        };
+
+        let category = self
+            .product_repo
+            .find_category_by_id(category_id)
+            .await?
+            .ok_or_else(|| DomainError::ValidationError(format!("Category {} does not exist", category_id)))?;
+
+        if !category.is_active {
+            return Err(DomainError::ValidationError(format!(
+                "Category {} is inactive",
+                category_id
+            )));
+        }
+
+        Ok(())
     }
 }

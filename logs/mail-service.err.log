@@ -1,8 +1,0 @@
-    Blocking waiting for file lock on package cache
-    Blocking waiting for file lock on package cache
-    Blocking waiting for file lock on package cache
-    Blocking waiting for file lock on package cache
-    Blocking waiting for file lock on artifact directory
-   Compiling mail-service v0.1.0 (C:\Users\Jayden\Desktop\BE_rust_store\services\mail-service)
-    Finished `dev` profile [unoptimized + debuginfo] target(s) in 17.90s
-     Running `target\x86_64-pc-windows-msvc\debug\mail-service.exe`

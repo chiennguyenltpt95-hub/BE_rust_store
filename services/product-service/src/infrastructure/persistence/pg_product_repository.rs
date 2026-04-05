@@ -1,5 +1,6 @@
 use async_trait::async_trait;
 use domain_core::error::DomainError;
+use serde_json::Value;
 use sqlx::PgPool;
 use uuid::Uuid;
 
@@ -22,8 +23,15 @@ struct ProductRow {
     id: Uuid,
     name: String,
     description: Option<String>,
+    sku: Option<String>,
     category_id: Option<Uuid>,
     category_name: Option<String>,
+    category_slug: Option<String>,
+    category_is_active: Option<bool>,
+    category_target_gender: Option<String>,
+    product_type: Option<String>,
+    attributes: Value,
+    image_urls: Vec<String>,
     price_cents: i64,
     stock: i32,
     status: String,
@@ -36,6 +44,12 @@ struct CategoryRow {
     id: Uuid,
     name: String,
     slug: String,
+    description: Option<String>,
+    image_url: Option<String>,
+    parent_id: Option<Uuid>,
+    display_order: i32,
+    is_active: bool,
+    target_gender: String,
     created_at: chrono::DateTime<chrono::Utc>,
     updated_at: chrono::DateTime<chrono::Utc>,
 }
@@ -46,6 +60,12 @@ impl CategoryRow {
             id: self.id,
             name: self.name,
             slug: self.slug,
+            description: self.description,
+            image_url: self.image_url,
+            parent_id: self.parent_id,
+            display_order: self.display_order,
+            is_active: self.is_active,
+            target_gender: self.target_gender,
             created_at: self.created_at,
             updated_at: self.updated_at,
         }
@@ -64,8 +84,15 @@ impl ProductRow {
             id: self.id,
             name: self.name,
             description: self.description,
+            sku: self.sku,
             category_id: self.category_id,
             category_name: self.category_name,
+            category_slug: self.category_slug,
+            category_is_active: self.category_is_active,
+            category_target_gender: self.category_target_gender,
+            product_type: self.product_type,
+            attributes: self.attributes,
+            image_urls: self.image_urls,
             price_cents: self.price_cents,
             stock: self.stock,
             status,
@@ -79,7 +106,10 @@ impl ProductRow {
 impl ProductRepository for PgProductRepository {
     async fn find_by_id(&self, id: Uuid) -> Result<Option<Product>, DomainError> {
         let row: Option<ProductRow> = sqlx::query_as(
-            r#"SELECT p.id, p.name, p.description, p.category_id, c.name AS category_name,
+            r#"SELECT p.id, p.name, p.description, p.sku, p.category_id, c.name AS category_name,
+                    c.slug AS category_slug, c.is_active AS category_is_active,
+                    c.target_gender AS category_target_gender,
+                    p.product_type, p.attributes, p.image_urls,
                  p.price_cents, p.stock, p.status, p.created_at, p.updated_at
              FROM products p
              LEFT JOIN categories c ON c.id = p.category_id
@@ -98,18 +128,22 @@ impl ProductRepository for PgProductRepository {
 
         sqlx::query(
             r#"INSERT INTO products
-             (id, name, description, category_id, price_cents, stock, status, created_at, updated_at)
-             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)"#,
+               (id, name, description, sku, category_id, product_type, attributes, image_urls, price_cents, stock, status, created_at, updated_at)
+               VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)"#,
         )
         .bind(product.id)
         .bind(&product.name)
         .bind(&product.description)
-         .bind(product.category_id)
-         .bind(product.price_cents)
-         .bind(product.stock)
-         .bind(status)
-         .bind(product.created_at)
-         .bind(product.updated_at)
+           .bind(&product.sku)
+           .bind(product.category_id)
+           .bind(&product.product_type)
+           .bind(&product.attributes)
+           .bind(&product.image_urls)
+           .bind(product.price_cents)
+           .bind(product.stock)
+           .bind(status)
+           .bind(product.created_at)
+           .bind(product.updated_at)
         .execute(&self.pool)
         .await
         .map_err(|e| DomainError::InfrastructureError(e.to_string()))?;
@@ -124,17 +158,25 @@ impl ProductRepository for PgProductRepository {
             r#"UPDATE products
                SET name = $2,
                    description = $3,
-                   category_id = $4,
-                   price_cents = $5,
-                   stock = $6,
-                   status = $7,
-                   updated_at = $8
+                   sku = $4,
+                   category_id = $5,
+                   product_type = $6,
+                   attributes = $7,
+                   image_urls = $8,
+                   price_cents = $9,
+                   stock = $10,
+                   status = $11,
+                   updated_at = $12
                WHERE id = $1"#,
         )
         .bind(product.id)
         .bind(&product.name)
         .bind(&product.description)
+        .bind(&product.sku)
         .bind(product.category_id)
+        .bind(&product.product_type)
+        .bind(&product.attributes)
+        .bind(&product.image_urls)
         .bind(product.price_cents)
         .bind(product.stock)
         .bind(status)
@@ -162,7 +204,10 @@ impl ProductRepository for PgProductRepository {
 
     async fn find_all(&self) -> Result<Vec<Product>, DomainError> {
         let rows: Vec<ProductRow> = sqlx::query_as(
-            r#"SELECT p.id, p.name, p.description, p.category_id, c.name AS category_name,
+            r#"SELECT p.id, p.name, p.description, p.sku, p.category_id, c.name AS category_name,
+                    c.slug AS category_slug, c.is_active AS category_is_active,
+                    c.target_gender AS category_target_gender,
+                    p.product_type, p.attributes, p.image_urls,
                  p.price_cents, p.stock, p.status, p.created_at, p.updated_at
              FROM products p
              LEFT JOIN categories c ON c.id = p.category_id"#,
@@ -176,12 +221,19 @@ impl ProductRepository for PgProductRepository {
 
     async fn save_category(&self, category: &Category) -> Result<(), DomainError> {
         sqlx::query(
-            r#"INSERT INTO categories (id, name, slug, created_at, updated_at)
-               VALUES ($1, $2, $3, $4, $5)"#,
+            r#"INSERT INTO categories
+               (id, name, slug, description, image_url, parent_id, display_order, is_active, target_gender, created_at, updated_at)
+               VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)"#,
         )
         .bind(category.id)
         .bind(&category.name)
         .bind(&category.slug)
+        .bind(&category.description)
+        .bind(&category.image_url)
+        .bind(category.parent_id)
+        .bind(category.display_order)
+        .bind(category.is_active)
+        .bind(&category.target_gender)
         .bind(category.created_at)
         .bind(category.updated_at)
         .execute(&self.pool)
@@ -193,7 +245,8 @@ impl ProductRepository for PgProductRepository {
 
     async fn find_category_by_id(&self, id: Uuid) -> Result<Option<Category>, DomainError> {
         let row: Option<CategoryRow> = sqlx::query_as(
-            r#"SELECT id, name, slug, created_at, updated_at
+            r#"SELECT id, name, slug, description, image_url, parent_id, display_order,
+                      is_active, target_gender, created_at, updated_at
                FROM categories
                WHERE id = $1"#,
         )
@@ -207,7 +260,8 @@ impl ProductRepository for PgProductRepository {
 
     async fn find_category_by_slug(&self, slug: &str) -> Result<Option<Category>, DomainError> {
         let row: Option<CategoryRow> = sqlx::query_as(
-            r#"SELECT id, name, slug, created_at, updated_at
+            r#"SELECT id, name, slug, description, image_url, parent_id, display_order,
+                      is_active, target_gender, created_at, updated_at
                FROM categories
                WHERE slug = $1"#,
         )
@@ -221,9 +275,10 @@ impl ProductRepository for PgProductRepository {
 
     async fn list_categories(&self) -> Result<Vec<Category>, DomainError> {
         let rows: Vec<CategoryRow> = sqlx::query_as(
-            r#"SELECT id, name, slug, created_at, updated_at
+             r#"SELECT id, name, slug, description, image_url, parent_id, display_order,
+                 is_active, target_gender, created_at, updated_at
                FROM categories
-               ORDER BY name ASC"#,
+             ORDER BY display_order ASC, name ASC"#,
         )
         .fetch_all(&self.pool)
         .await

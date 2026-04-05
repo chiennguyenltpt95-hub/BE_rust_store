@@ -24,6 +24,21 @@ impl CategoryAppService {
             .map_err(|e| DomainError::ValidationError(e.to_string()))?;
 
         let slug = cmd.slug.unwrap_or_else(|| slugify(&cmd.name));
+        let target_gender = cmd
+            .target_gender
+            .unwrap_or_else(|| "female".to_string())
+            .to_lowercase();
+        let display_order = cmd.display_order.unwrap_or(0);
+        let is_active = cmd.is_active.unwrap_or(true);
+
+        if let Some(parent_id) = cmd.parent_id {
+            if self.product_repo.find_category_by_id(parent_id).await?.is_none() {
+                return Err(DomainError::ValidationError(format!(
+                    "Parent category {} does not exist",
+                    parent_id
+                )));
+            }
+        }
 
         if self
             .product_repo
@@ -37,7 +52,17 @@ impl CategoryAppService {
             )));
         }
 
-        let category = Category::create(Uuid::new_v4(), cmd.name, slug)?;
+        let category = Category::create(
+            Uuid::new_v4(),
+            cmd.name,
+            slug,
+            cmd.description,
+            cmd.image_url,
+            cmd.parent_id,
+            display_order,
+            is_active,
+            target_gender,
+        )?;
         let id = category.id;
         self.product_repo.save_category(&category).await?;
         Ok(id)

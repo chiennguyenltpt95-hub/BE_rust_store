@@ -1,5 +1,0 @@
-{"timestamp":"2026-04-02T08:14:27.911384Z","level":"INFO","fields":{"message":"Tracing initialized","service":"notification-service"},"target":"notification_service::infrastructure::telemetry"}
-{"timestamp":"2026-04-02T08:14:27.911780Z","level":"INFO","fields":{"message":"Starting notification-service..."},"target":"notification_service"}
-{"timestamp":"2026-04-02T08:14:28.566314Z","level":"INFO","fields":{"message":"relation \"_sqlx_migrations\" already exists, skipping"},"target":"sqlx::postgres::notice"}
-{"timestamp":"2026-04-02T08:14:29.413974Z","level":"INFO","fields":{"message":"Listening on 0.0.0.0:3008"},"target":"notification_service"}
-{"timestamp":"2026-04-02T08:14:29.414389Z","level":"INFO","fields":{"message":"Notification Kafka listener started on topic 'domain-events'"},"target":"notification_service::presentation::event_listener"}

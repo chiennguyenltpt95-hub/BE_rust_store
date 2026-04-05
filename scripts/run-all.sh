@@ -8,10 +8,14 @@ PID_DIR="$ROOT/.run"
 LOG_DIR="$ROOT/logs"
 mkdir -p "$PID_DIR" "$LOG_DIR"
 
+LOCAL_DATABASE_URL="${LOCAL_DATABASE_URL:-postgres://postgres:password@localhost:5432/postgres}"
+USE_LOCAL_DB="${USE_LOCAL_DB:-0}"
+
 SERVICES=(
   "user-service:3001"
   "mail-service:3002"
   "product-service:3006"
+  "upload-service:3011"
   "comment-service:3010"
   "cart-service:3003"
   "checkout-service:3004"
@@ -66,7 +70,11 @@ start_service() {
     rm -f "$pid_path"
   fi
 
-  nohup cargo run -p "$name" >"$LOG_DIR/$name.out.log" 2>"$LOG_DIR/$name.err.log" &
+  if [[ "$USE_LOCAL_DB" == "1" ]]; then
+    DATABASE_URL="$LOCAL_DATABASE_URL" nohup cargo run -p "$name" >"$LOG_DIR/$name.out.log" 2>"$LOG_DIR/$name.err.log" &
+  else
+    nohup cargo run -p "$name" >"$LOG_DIR/$name.out.log" 2>"$LOG_DIR/$name.err.log" &
+  fi
   local new_pid=$!
   echo "$new_pid" >"$pid_path"
   echo "- started $name (PID $new_pid)"
