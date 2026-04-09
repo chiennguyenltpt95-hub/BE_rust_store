@@ -8,7 +8,7 @@ PID_DIR="$ROOT/.run"
 LOG_DIR="$ROOT/logs"
 mkdir -p "$PID_DIR" "$LOG_DIR"
 
-LOCAL_DATABASE_URL="${LOCAL_DATABASE_URL:-postgres://postgres:password@localhost:5432/postgres}"
+LOCAL_DATABASE_URL="${LOCAL_DATABASE_URL:-postgresql://localhost:5432/postgres?user=jayden&password=db-jayden}"
 USE_LOCAL_DB="${USE_LOCAL_DB:-0}"
 
 SERVICES=(
@@ -56,19 +56,59 @@ MSYS_NO_PATHCONV=1 docker exec be_store_kafka /opt/kafka/bin/kafka-topics.sh \
   --partitions 1 \
   --replication-factor 1 >/dev/null 2>&1 || true
 
+is_healthy() {
+  local port="$1"
+  curl -fsS "http://localhost:${port}/health" >/dev/null 2>&1
+}
+
+is_pid_running_windows() {
+  local pid="$1"
+  tasklist //FI "PID eq ${pid}" 2>/dev/null | grep -qE "[[:space:]]${pid}[[:space:]]"
+}
+
+kill_pid_tree_windows() {
+  local pid="$1"
+  taskkill //PID "$pid" //T //F >/dev/null 2>&1 || true
+}
+
+free_port_if_occupied() {
+  local port="$1"
+  local pids
+  pids="$(netstat -ano 2>/dev/null | awk -v needle=":${port}" '$2 ~ needle && $4 == "LISTENING" { print $5 }' | sort -u)"
+
+  if [[ -z "$pids" ]]; then
+    return
+  fi
+
+  while IFS= read -r pid; do
+    if [[ -n "$pid" ]] && [[ "$pid" =~ ^[0-9]+$ ]] && [[ "$pid" != "0" ]]; then
+      echo "  freeing port :$port (PID $pid)"
+      kill_pid_tree_windows "$pid"
+    fi
+  done <<< "$pids"
+}
+
 start_service() {
   local name="$1"
+  local port="$2"
   local pid_path="$PID_DIR/$name.pid"
+
+  if is_healthy "$port"; then
+    echo "- $name already healthy on :$port, skipping"
+    return
+  fi
 
   if [[ -f "$pid_path" ]]; then
     local existing_pid
     existing_pid="$(head -n 1 "$pid_path" || true)"
-    if [[ -n "$existing_pid" ]] && kill -0 "$existing_pid" >/dev/null 2>&1; then
-      echo "- $name already running (PID $existing_pid), skipping"
-      return
+    if [[ -n "$existing_pid" ]] && [[ "$existing_pid" =~ ^[0-9]+$ ]] && is_pid_running_windows "$existing_pid"; then
+      echo "- $name has stale/unhealthy PID $existing_pid, restarting"
+      kill_pid_tree_windows "$existing_pid"
     fi
     rm -f "$pid_path"
   fi
+
+  free_port_if_occupied "$port"
 
   if [[ "$USE_LOCAL_DB" == "1" ]]; then
     DATABASE_URL="$LOCAL_DATABASE_URL" nohup cargo run -p "$name" >"$LOG_DIR/$name.out.log" 2>"$LOG_DIR/$name.err.log" &
@@ -83,7 +123,8 @@ start_service() {
 echo "[3/4] Starting Rust services..."
 for svc in "${SERVICES[@]}"; do
   name="${svc%%:*}"
-  start_service "$name"
+  port="${svc##*:}"
+  start_service "$name" "$port"
 done
 
 wait_healthy() {

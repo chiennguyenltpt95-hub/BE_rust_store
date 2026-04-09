@@ -1,0 +1,2 @@
+{"timestamp":"2026-04-09T03:39:33.974067Z","level":"INFO","fields":{"message":"Tracing initialized","service":"cart-service"},"target":"cart_service::infrastructure::telemetry"}
+{"timestamp":"2026-04-09T03:39:33.974240Z","level":"INFO","fields":{"message":"Starting cart-service..."},"target":"cart_service"}

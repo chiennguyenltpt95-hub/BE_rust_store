@@ -14,13 +14,17 @@ pub struct AppConfig {
 
 impl AppConfig {
     pub fn from_env() -> Result<Self> {
+        let s3_bucket = std::env::var("S3_BUCKET")
+            .or_else(|_| std::env::var("S3_BUCKET_NAME"))
+            .unwrap_or_else(|_| "store-assets".into());
+
         Ok(Self {
             http_addr: std::env::var("HTTP_ADDR").unwrap_or_else(|_| "0.0.0.0:3011".into()),
             service_name: "upload-service".into(),
             jwt_secret: std::env::var("JWT_SECRET")
                 .unwrap_or_else(|_| "super-secret-change-me".into()),
             aws_region: std::env::var("AWS_REGION").unwrap_or_else(|_| "ap-southeast-1".into()),
-            s3_bucket: std::env::var("S3_BUCKET").unwrap_or_else(|_| "store-assets".into()),
+            s3_bucket,
             s3_key_prefix: std::env::var("S3_KEY_PREFIX").unwrap_or_else(|_| "products".into()),
             s3_presign_expires_seconds: std::env::var("S3_PRESIGN_EXPIRES_SECONDS")
                 .ok()

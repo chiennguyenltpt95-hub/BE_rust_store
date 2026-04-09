@@ -1,3 +1,3 @@
-{"timestamp":"2026-04-05T09:13:50.803621Z","level":"INFO","fields":{"message":"Tracing initialized","service":"upload-service"},"target":"upload_service::infrastructure::telemetry"}
-{"timestamp":"2026-04-05T09:13:50.803813Z","level":"INFO","fields":{"message":"Starting upload-service..."},"target":"upload_service"}
-{"timestamp":"2026-04-05T09:13:50.815886Z","level":"INFO","fields":{"message":"Listening on 0.0.0.0:3011","service":"upload-service"},"target":"upload_service"}
+{"timestamp":"2026-04-09T03:53:23.621583Z","level":"INFO","fields":{"message":"Tracing initialized","service":"upload-service"},"target":"upload_service::infrastructure::telemetry"}
+{"timestamp":"2026-04-09T03:53:23.621793Z","level":"INFO","fields":{"message":"Starting upload-service..."},"target":"upload_service"}
+{"timestamp":"2026-04-09T03:53:23.632321Z","level":"INFO","fields":{"message":"Listening on 0.0.0.0:3011","service":"upload-service"},"target":"upload_service"}

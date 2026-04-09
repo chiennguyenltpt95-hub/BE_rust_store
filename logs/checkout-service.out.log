@@ -1,0 +1,2 @@
+{"timestamp":"2026-04-09T03:39:36.688419Z","level":"INFO","fields":{"message":"Tracing initialized","service":"checkout-service"},"target":"checkout_service::infrastructure::telemetry"}
+{"timestamp":"2026-04-09T03:39:36.688653Z","level":"INFO","fields":{"message":"Starting checkout-service..."},"target":"checkout_service"}

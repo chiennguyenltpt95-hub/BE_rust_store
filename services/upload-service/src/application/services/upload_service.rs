@@ -10,7 +10,9 @@ use uuid::Uuid;
 
 #[derive(Debug, Deserialize)]
 pub struct CreateUploadPresignRequest {
+    #[serde(alias = "fileName")]
     pub file_name: String,
+    #[serde(alias = "contentType")]
     pub content_type: Option<String>,
     pub folder: Option<String>,
 }
@@ -39,7 +41,7 @@ impl UploadAppService {
         s3_presign_expires_seconds: u64,
         s3_endpoint_url: Option<String>,
     ) -> Result<Self, DomainError> {
-        let shared_config = aws_config::from_env()
+        let shared_config = aws_config::defaults(aws_config::BehaviorVersion::latest())
             .region(Region::new(aws_region))
             .load()
             .await;

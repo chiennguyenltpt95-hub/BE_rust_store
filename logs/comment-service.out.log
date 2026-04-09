@@ -1,0 +1,2 @@
+{"timestamp":"2026-04-09T03:39:31.277485Z","level":"INFO","fields":{"message":"Tracing initialized","service":"comment-service"},"target":"comment_service::infrastructure::telemetry"}
+{"timestamp":"2026-04-09T03:39:31.277716Z","level":"INFO","fields":{"message":"Starting comment-service..."},"target":"comment_service"}

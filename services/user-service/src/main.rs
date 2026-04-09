@@ -1,6 +1,6 @@
 use anyhow::Result;
 use dotenvy::from_filename;
-use tracing::info;
+use tracing::{info, warn};
 
 use crate::infrastructure::auth::JwtService;
 
@@ -29,9 +29,7 @@ async fn main() -> Result<()> {
     let db_pool = infrastructure::persistence::create_pool(&cfg.database_url).await?;
 
     // Migrations: shared DB for multiple services, ignore versions from other services.
-    let mut migrator = sqlx::migrate!("./migrations");
-    migrator.set_ignore_missing(true);
-    migrator.run(&db_pool).await?;
+    run_migrations(&db_pool).await?;
 
     // Khởi tạo Kafka producer
     let event_publisher = std::sync::Arc::new(infrastructure::messaging::KafkaEventPublisher::new(
@@ -73,6 +71,22 @@ async fn main() -> Result<()> {
 
     let listener = tokio::net::TcpListener::bind(addr).await?;
     axum::serve(listener, router).await?;
+
+    Ok(())
+}
+
+async fn run_migrations(db_pool: &sqlx::PgPool) -> Result<()> {
+    let mut migrator = sqlx::migrate!("./migrations");
+    migrator.set_ignore_missing(true);
+
+    if let Err(err) = migrator.run(db_pool).await {
+        let err_msg = err.to_string();
+        if err_msg.contains("previously applied but has been modified") {
+            warn!(error = %err, "Ignoring modified migration checksum mismatch for local/dev startup");
+            return Ok(());
+        }
+        return Err(err.into());
+    }
 
     Ok(())
 }

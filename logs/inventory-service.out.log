@@ -1,4 +1,2 @@
-{"timestamp":"2026-04-05T09:13:51.110298Z","level":"INFO","fields":{"message":"Tracing initialized","service":"inventory-service"},"target":"inventory_service::infrastructure::telemetry"}
-{"timestamp":"2026-04-05T09:13:51.110547Z","level":"INFO","fields":{"message":"Starting inventory-service..."},"target":"inventory_service"}
-{"timestamp":"2026-04-05T09:13:52.743114Z","level":"INFO","fields":{"message":"relation \"_sqlx_migrations\" already exists, skipping"},"target":"sqlx::postgres::notice"}
-{"timestamp":"2026-04-05T09:13:53.126656Z","level":"INFO","fields":{"message":"Listening on 0.0.0.0:3007"},"target":"inventory_service"}
+{"timestamp":"2026-04-09T03:39:41.783411Z","level":"INFO","fields":{"message":"Tracing initialized","service":"inventory-service"},"target":"inventory_service::infrastructure::telemetry"}
+{"timestamp":"2026-04-09T03:39:41.783628Z","level":"INFO","fields":{"message":"Starting inventory-service..."},"target":"inventory_service"}
