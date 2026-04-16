@@ -1,5 +1,5 @@
-{"timestamp":"2026-04-09T03:39:26.113829Z","level":"INFO","fields":{"message":"Tracing initialized","service":"product-service"},"target":"product_service::infrastructure::telemetry"}
-{"timestamp":"2026-04-09T03:39:26.114065Z","level":"INFO","fields":{"message":"Starting product-service..."},"target":"product_service"}
-{"timestamp":"2026-04-09T03:39:26.752671Z","level":"INFO","fields":{"message":"relation \"_sqlx_migrations\" already exists, skipping"},"target":"sqlx::postgres::notice"}
-{"timestamp":"2026-04-09T03:39:26.934302Z","level":"WARN","fields":{"message":"Ignoring modified migration checksum mismatch for local/dev startup","error":"migration 2026041105 was previously applied but has been modified"},"target":"product_service"}
-{"timestamp":"2026-04-09T03:39:26.935133Z","level":"INFO","fields":{"message":"Listening on 0.0.0.0:3006","service":"product-service"},"target":"product_service"}
+{"timestamp":"2026-04-16T02:49:38.199047Z","level":"INFO","fields":{"message":"Tracing initialized","service":"product-service"},"target":"product_service::infrastructure::telemetry"}
+{"timestamp":"2026-04-16T02:49:38.199259Z","level":"INFO","fields":{"message":"Starting product-service..."},"target":"product_service"}
+{"timestamp":"2026-04-16T02:49:38.918699Z","level":"INFO","fields":{"message":"relation \"_sqlx_migrations\" already exists, skipping"},"target":"sqlx::postgres::notice"}
+{"timestamp":"2026-04-16T02:49:39.098569Z","level":"WARN","fields":{"message":"Ignoring modified migration checksum mismatch for local/dev startup","error":"migration 2026041105 was previously applied but has been modified"},"target":"product_service"}
+{"timestamp":"2026-04-16T02:49:39.099170Z","level":"INFO","fields":{"message":"Listening on 0.0.0.0:3006","service":"product-service"},"target":"product_service"}

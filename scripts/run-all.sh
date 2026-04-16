@@ -8,7 +8,7 @@ PID_DIR="$ROOT/.run"
 LOG_DIR="$ROOT/logs"
 mkdir -p "$PID_DIR" "$LOG_DIR"
 
-LOCAL_DATABASE_URL="${LOCAL_DATABASE_URL:-postgresql://localhost:5432/postgres?user=jayden&password=db-jayden}"
+LOCAL_DATABASE_URL="${LOCAL_DATABASE_URL:-postgresql://db-jayden.c1gymyg48fuo.ap-southeast-1.rds.amazonaws.com:5432/postgres?user=jayden&password=db-jayden}"
 USE_LOCAL_DB="${USE_LOCAL_DB:-0}"
 
 SERVICES=(

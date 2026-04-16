@@ -1,4 +1,6 @@
-    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.53s
+    Blocking waiting for file lock on artifact directory
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 11.82s
 warning: the following packages contain code that will be rejected by a future version of Rust: sqlx-postgres v0.7.4
 note: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 5`
      Running `target\x86_64-pc-windows-msvc\debug\order-service.exe`
+error: process didn't exit successfully: `target\x86_64-pc-windows-msvc\debug\order-service.exe` (exit code: 0xc000013a, STATUS_CONTROL_C_EXIT)

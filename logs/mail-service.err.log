@@ -1,2 +1,6 @@
-    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.50s
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 14.84s
      Running `target\x86_64-pc-windows-msvc\debug\mail-service.exe`
+error: process didn't exit successfully: `target\x86_64-pc-windows-msvc\debug\mail-service.exe` (exit code: 0xc000013a, STATUS_CONTROL_C_EXIT)

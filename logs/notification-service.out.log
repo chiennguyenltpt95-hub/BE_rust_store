@@ -1,2 +1,2 @@
-{"timestamp":"2026-04-09T03:39:44.488297Z","level":"INFO","fields":{"message":"Tracing initialized","service":"notification-service"},"target":"notification_service::infrastructure::telemetry"}
-{"timestamp":"2026-04-09T03:39:44.488559Z","level":"INFO","fields":{"message":"Starting notification-service..."},"target":"notification_service"}
+{"timestamp":"2026-04-16T02:49:47.349751Z","level":"INFO","fields":{"message":"Tracing initialized","service":"notification-service"},"target":"notification_service::infrastructure::telemetry"}
+{"timestamp":"2026-04-16T02:49:47.349965Z","level":"INFO","fields":{"message":"Starting notification-service..."},"target":"notification_service"}

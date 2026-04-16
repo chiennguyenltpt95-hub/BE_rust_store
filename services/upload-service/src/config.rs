@@ -25,7 +25,7 @@ impl AppConfig {
                 .unwrap_or_else(|_| "super-secret-change-me".into()),
             aws_region: std::env::var("AWS_REGION").unwrap_or_else(|_| "ap-southeast-1".into()),
             s3_bucket,
-            s3_key_prefix: std::env::var("S3_KEY_PREFIX").unwrap_or_else(|_| "products".into()),
+            s3_key_prefix: std::env::var("S3_KEY_PREFIX").unwrap_or_else(|_| "".into()),
             s3_presign_expires_seconds: std::env::var("S3_PRESIGN_EXPIRES_SECONDS")
                 .ok()
                 .and_then(|v| v.parse::<u64>().ok())

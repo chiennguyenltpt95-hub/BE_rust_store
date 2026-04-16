@@ -1,2 +1,2 @@
-{"timestamp":"2026-04-09T03:39:39.311952Z","level":"INFO","fields":{"message":"Tracing initialized","service":"order-service"},"target":"order_service::infrastructure::telemetry"}
-{"timestamp":"2026-04-09T03:39:39.312169Z","level":"INFO","fields":{"message":"Starting order-service..."},"target":"order_service"}
+{"timestamp":"2026-04-16T02:49:45.059274Z","level":"INFO","fields":{"message":"Tracing initialized","service":"order-service"},"target":"order_service::infrastructure::telemetry"}
+{"timestamp":"2026-04-16T02:49:45.059495Z","level":"INFO","fields":{"message":"Starting order-service..."},"target":"order_service"}

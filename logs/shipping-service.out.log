@@ -1,2 +1,2 @@
-{"timestamp":"2026-04-09T03:39:47.001823Z","level":"INFO","fields":{"message":"Tracing initialized","service":"shipping-service"},"target":"shipping_service::infrastructure::telemetry"}
-{"timestamp":"2026-04-09T03:39:47.001993Z","level":"INFO","fields":{"message":"Starting shipping-service..."},"target":"shipping_service"}
+{"timestamp":"2026-04-16T02:49:48.045064Z","level":"INFO","fields":{"message":"Tracing initialized","service":"shipping-service"},"target":"shipping_service::infrastructure::telemetry"}
+{"timestamp":"2026-04-16T02:49:48.045271Z","level":"INFO","fields":{"message":"Starting shipping-service..."},"target":"shipping_service"}

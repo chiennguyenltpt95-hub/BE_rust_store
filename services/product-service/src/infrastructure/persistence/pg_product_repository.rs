@@ -300,4 +300,22 @@ impl ProductRepository for PgProductRepository {
 
         Ok(())
     }
+
+    async fn search_categories(&self, query: &str) -> Result<Vec<Category>, DomainError> {
+        let pattern = format!("%{}%", query);
+        let rows: Vec<CategoryRow> = sqlx::query_as(
+             r#"SELECT id, name, slug, description, image_url, parent_id, display_order,
+                 is_active, target_gender, created_at, updated_at
+               FROM categories
+               WHERE name ILIKE $1 OR slug ILIKE $1
+               ORDER BY display_order ASC, name ASC"#,
+        )
+        .bind(pattern)
+        .fetch_all(&self.pool)
+        .await
+        .map_err(|e| DomainError::InfrastructureError(e.to_string()))?;
+
+        Ok(rows.into_iter().map(CategoryRow::into_category).collect())
+    }
+
 }

@@ -16,4 +16,5 @@ pub trait ProductRepository: Send + Sync {
     async fn find_category_by_slug(&self, slug: &str) -> Result<Option<Category>, DomainError>;
     async fn list_categories(&self) -> Result<Vec<Category>, DomainError>;
     async fn delete_category(&self, id: Uuid) -> Result<(), DomainError>;
+    async fn search_categories(&self, query: &str) -> Result<Vec<Category>, DomainError>;
 }

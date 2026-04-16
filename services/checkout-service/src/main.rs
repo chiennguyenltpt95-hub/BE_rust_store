@@ -24,6 +24,8 @@ async fn main() -> Result<()> {
     migrator.set_ignore_missing(true);
     migrator.run(&db_pool).await?;
 
+    info!("Database connected and migrations applied and migrations applied");
+
     let checkout_repo = Arc::new(infrastructure::persistence::PgCheckoutRepository::new(
         db_pool,
     ));

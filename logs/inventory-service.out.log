@@ -1,2 +1,2 @@
-{"timestamp":"2026-04-09T03:39:41.783411Z","level":"INFO","fields":{"message":"Tracing initialized","service":"inventory-service"},"target":"inventory_service::infrastructure::telemetry"}
-{"timestamp":"2026-04-09T03:39:41.783628Z","level":"INFO","fields":{"message":"Starting inventory-service..."},"target":"inventory_service"}
+{"timestamp":"2026-04-16T02:49:45.888700Z","level":"INFO","fields":{"message":"Tracing initialized","service":"inventory-service"},"target":"inventory_service::infrastructure::telemetry"}
+{"timestamp":"2026-04-16T02:49:45.888905Z","level":"INFO","fields":{"message":"Starting inventory-service..."},"target":"inventory_service"}

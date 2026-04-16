@@ -38,6 +38,7 @@ pub fn build_router(
             "/api/v1/categories/:id",
             get(category_handler::get_category),
         )
+        .route("/api/v1/categories/search", get(category_handler::search_categories)  )
         .with_state(category_service.clone());
 
     let category_admin_router = Router::new()

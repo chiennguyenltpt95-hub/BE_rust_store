@@ -1,6 +1,6 @@
 use domain_core::error::DomainError;
 use std::sync::Arc;
-use tracing::instrument;
+use tracing::{info, instrument};
 use uuid::Uuid;
 use validator::Validate;
 
@@ -19,7 +19,7 @@ impl CategoryAppService {
     }
 
     #[instrument(skip(self, cmd))]
-    pub async fn create_category(&self, cmd: CreateCategoryCommand) -> Result<Uuid, DomainError> {
+    pub async fn create_category(&self, cmd: CreateCategoryCommand) -> Result<CategoryView, DomainError> {
         cmd.validate()
             .map_err(|e| DomainError::ValidationError(e.to_string()))?;
 
@@ -65,7 +65,7 @@ impl CategoryAppService {
         )?;
         let id = category.id;
         self.product_repo.save_category(&category).await?;
-        Ok(id)
+        Ok(CategoryView::from(category))
     }
 
     #[instrument(skip(self))]
@@ -89,7 +89,18 @@ impl CategoryAppService {
     pub async fn delete_category(&self, id: Uuid) -> Result<(), DomainError> {
         self.product_repo.delete_category(id).await
     }
+
+    #[instrument(skip(self))]
+    pub async fn search_categories(&self, query: String) -> Result<Vec<CategoryView>, DomainError> {
+        info!("Searching categories with query: {}", query);
+        let categories = self.product_repo.search_categories(&query).await?;
+        Ok(categories.into_iter().map(CategoryView::from).collect())
+    }
+
 }
+
+
+
 
 fn slugify(input: &str) -> String {
     let lowered = input.trim().to_lowercase();
