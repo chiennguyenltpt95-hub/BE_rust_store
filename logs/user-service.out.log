@@ -1,5 +1,5 @@
-{"timestamp":"2026-04-18T07:54:27.972440Z","level":"INFO","fields":{"message":"Tracing initialized","service":"user-service"},"target":"user_service::infrastructure::telemetry"}
-{"timestamp":"2026-04-18T07:54:27.972648Z","level":"INFO","fields":{"message":"Starting service...","service":"user-service"},"target":"user_service"}
-{"timestamp":"2026-04-18T07:54:28.619228Z","level":"INFO","fields":{"message":"relation \"_sqlx_migrations\" already exists, skipping"},"target":"sqlx::postgres::notice"}
-{"timestamp":"2026-04-18T07:54:28.935785Z","level":"INFO","fields":{"message":"Kafka producer connected to localhost:9094"},"target":"user_service::infrastructure::messaging"}
-{"timestamp":"2026-04-18T07:54:28.938996Z","level":"INFO","fields":{"message":"Listening on 0.0.0.0:3001","service":"user-service"},"target":"user_service"}
+{"timestamp":"2026-04-18T09:52:00.568271Z","level":"INFO","fields":{"message":"Tracing initialized","service":"user-service"},"target":"user_service::infrastructure::telemetry"}
+{"timestamp":"2026-04-18T09:52:00.568532Z","level":"INFO","fields":{"message":"Starting service...","service":"user-service"},"target":"user_service"}
+{"timestamp":"2026-04-18T09:52:01.265602Z","level":"INFO","fields":{"message":"relation \"_sqlx_migrations\" already exists, skipping"},"target":"sqlx::postgres::notice"}
+{"timestamp":"2026-04-18T09:52:01.590634Z","level":"INFO","fields":{"message":"Kafka producer connected to localhost:9094"},"target":"user_service::infrastructure::messaging"}
+{"timestamp":"2026-04-18T09:52:01.594376Z","level":"INFO","fields":{"message":"Listening on 0.0.0.0:3001","service":"user-service"},"target":"user_service"}

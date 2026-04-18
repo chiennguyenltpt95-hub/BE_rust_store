@@ -25,6 +25,8 @@ struct ProductRow {
     description: Option<String>,
     sku: Option<String>,
     category_id: Option<Uuid>,
+    supplier_id: Option<Uuid>,
+    supplier_url: Option<String>,
     category_name: Option<String>,
     category_slug: Option<String>,
     category_is_active: Option<bool>,
@@ -33,7 +35,13 @@ struct ProductRow {
     attributes: Value,
     image_urls: Vec<String>,
     price_cents: i64,
+    cost_price_cents: Option<i64>,
+    sale_price_cents: Option<i64>,
+    sizes: Vec<String>,
+    colors: Vec<String>,
     stock: i32,
+    weight_grams: Option<i32>,
+    tags: Vec<String>,
     status: String,
     created_at: chrono::DateTime<chrono::Utc>,
     updated_at: chrono::DateTime<chrono::Utc>,
@@ -86,6 +94,8 @@ impl ProductRow {
             description: self.description,
             sku: self.sku,
             category_id: self.category_id,
+            supplier_id: self.supplier_id,
+            supplier_url: self.supplier_url,
             category_name: self.category_name,
             category_slug: self.category_slug,
             category_is_active: self.category_is_active,
@@ -94,7 +104,13 @@ impl ProductRow {
             attributes: self.attributes,
             image_urls: self.image_urls,
             price_cents: self.price_cents,
+            cost_price_cents: self.cost_price_cents,
+            sale_price_cents: self.sale_price_cents,
+            sizes: self.sizes,
+            colors: self.colors,
             stock: self.stock,
+            weight_grams: self.weight_grams,
+            tags: self.tags,
             status,
             created_at: self.created_at,
             updated_at: self.updated_at,
@@ -106,11 +122,15 @@ impl ProductRow {
 impl ProductRepository for PgProductRepository {
     async fn find_by_id(&self, id: Uuid) -> Result<Option<Product>, DomainError> {
         let row: Option<ProductRow> = sqlx::query_as(
-            r#"SELECT p.id, p.name, p.description, p.sku, p.category_id, c.name AS category_name,
+            r#"SELECT p.id, p.name, p.description, p.sku, p.category_id, p.supplier_id, p.supplier_url,
+                    c.name AS category_name,
                     c.slug AS category_slug, c.is_active AS category_is_active,
                     c.target_gender AS category_target_gender,
                     p.product_type, p.attributes, p.image_urls,
-                 p.price_cents, p.stock, p.status, p.created_at, p.updated_at
+                 p.price_cents, p.cost_price_cents, p.sale_price_cents,
+                 p.sizes, p.colors,
+                 p.stock, p.weight_grams, p.tags,
+                 p.status, p.created_at, p.updated_at
              FROM products p
              LEFT JOIN categories c ON c.id = p.category_id
              WHERE p.id = $1"#,
@@ -128,22 +148,38 @@ impl ProductRepository for PgProductRepository {
 
         sqlx::query(
             r#"INSERT INTO products
-               (id, name, description, sku, category_id, product_type, attributes, image_urls, price_cents, stock, status, created_at, updated_at)
-               VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)"#,
+                    (id, name, description, sku, category_id, supplier_id, supplier_url,
+                     product_type, attributes, image_urls,
+                     price_cents, cost_price_cents, sale_price_cents,
+                     sizes, colors, stock, weight_grams, tags,
+                     status, created_at, updated_at)
+                    VALUES ($1, $2, $3, $4, $5, $6, $7,
+                              $8, $9, $10,
+                              $11, $12, $13,
+                              $14, $15, $16, $17, $18,
+                              $19, $20, $21)"#,
         )
         .bind(product.id)
         .bind(&product.name)
         .bind(&product.description)
-           .bind(&product.sku)
-           .bind(product.category_id)
-           .bind(&product.product_type)
-           .bind(&product.attributes)
-           .bind(&product.image_urls)
-           .bind(product.price_cents)
-           .bind(product.stock)
-           .bind(status)
-           .bind(product.created_at)
-           .bind(product.updated_at)
+        .bind(&product.sku)
+        .bind(product.category_id)
+        .bind(product.supplier_id)
+        .bind(&product.supplier_url)
+        .bind(&product.product_type)
+        .bind(&product.attributes)
+        .bind(&product.image_urls)
+        .bind(product.price_cents)
+        .bind(product.cost_price_cents)
+        .bind(product.sale_price_cents)
+        .bind(&product.sizes)
+        .bind(&product.colors)
+        .bind(product.stock)
+        .bind(product.weight_grams)
+        .bind(&product.tags)
+        .bind(status)
+        .bind(product.created_at)
+        .bind(product.updated_at)
         .execute(&self.pool)
         .await
         .map_err(|e| DomainError::InfrastructureError(e.to_string()))?;
@@ -160,13 +196,21 @@ impl ProductRepository for PgProductRepository {
                    description = $3,
                    sku = $4,
                    category_id = $5,
-                   product_type = $6,
-                   attributes = $7,
-                   image_urls = $8,
-                   price_cents = $9,
-                   stock = $10,
-                   status = $11,
-                   updated_at = $12
+                   supplier_id = $6,
+                   supplier_url = $7,
+                   product_type = $8,
+                   attributes = $9,
+                   image_urls = $10,
+                   price_cents = $11,
+                   cost_price_cents = $12,
+                   sale_price_cents = $13,
+                   sizes = $14,
+                   colors = $15,
+                   stock = $16,
+                   weight_grams = $17,
+                   tags = $18,
+                   status = $19,
+                   updated_at = $20
                WHERE id = $1"#,
         )
         .bind(product.id)
@@ -174,11 +218,19 @@ impl ProductRepository for PgProductRepository {
         .bind(&product.description)
         .bind(&product.sku)
         .bind(product.category_id)
+        .bind(product.supplier_id)
+        .bind(&product.supplier_url)
         .bind(&product.product_type)
         .bind(&product.attributes)
         .bind(&product.image_urls)
         .bind(product.price_cents)
+        .bind(product.cost_price_cents)
+        .bind(product.sale_price_cents)
+        .bind(&product.sizes)
+        .bind(&product.colors)
         .bind(product.stock)
+        .bind(product.weight_grams)
+        .bind(&product.tags)
         .bind(status)
         .bind(product.updated_at)
         .execute(&self.pool)
@@ -204,11 +256,15 @@ impl ProductRepository for PgProductRepository {
 
     async fn find_all(&self) -> Result<Vec<Product>, DomainError> {
         let rows: Vec<ProductRow> = sqlx::query_as(
-            r#"SELECT p.id, p.name, p.description, p.sku, p.category_id, c.name AS category_name,
+            r#"SELECT p.id, p.name, p.description, p.sku, p.category_id, p.supplier_id, p.supplier_url,
+                    c.name AS category_name,
                     c.slug AS category_slug, c.is_active AS category_is_active,
                     c.target_gender AS category_target_gender,
                     p.product_type, p.attributes, p.image_urls,
-                 p.price_cents, p.stock, p.status, p.created_at, p.updated_at
+                 p.price_cents, p.cost_price_cents, p.sale_price_cents,
+                 p.sizes, p.colors,
+                 p.stock, p.weight_grams, p.tags,
+                 p.status, p.created_at, p.updated_at
              FROM products p
              LEFT JOIN categories c ON c.id = p.category_id"#,
         )
@@ -275,7 +331,7 @@ impl ProductRepository for PgProductRepository {
 
     async fn list_categories(&self) -> Result<Vec<Category>, DomainError> {
         let rows: Vec<CategoryRow> = sqlx::query_as(
-             r#"SELECT id, name, slug, description, image_url, parent_id, display_order,
+            r#"SELECT id, name, slug, description, image_url, parent_id, display_order,
                  is_active, target_gender, created_at, updated_at
                FROM categories
              ORDER BY display_order ASC, name ASC"#,
@@ -304,7 +360,7 @@ impl ProductRepository for PgProductRepository {
     async fn search_categories(&self, query: &str) -> Result<Vec<Category>, DomainError> {
         let pattern = format!("%{}%", query);
         let rows: Vec<CategoryRow> = sqlx::query_as(
-             r#"SELECT id, name, slug, description, image_url, parent_id, display_order,
+            r#"SELECT id, name, slug, description, image_url, parent_id, display_order,
                  is_active, target_gender, created_at, updated_at
                FROM categories
                WHERE name ILIKE $1 OR slug ILIKE $1
@@ -317,5 +373,4 @@ impl ProductRepository for PgProductRepository {
 
         Ok(rows.into_iter().map(CategoryRow::into_category).collect())
     }
-
 }

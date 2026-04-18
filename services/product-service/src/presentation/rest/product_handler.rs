@@ -6,7 +6,7 @@ use axum::{
 use std::sync::Arc;
 use uuid::Uuid;
 
-use crate::application::commands::{CreateProductCommand, UpdateProductCommand};
+use crate::application::commands::{CreateProductCommand, CreateProductForm, UpdateProductCommand};
 use crate::application::queries::{ListProductsQuery, ProductView};
 use crate::application::services::ProductAppService;
 
@@ -14,8 +14,18 @@ use super::response::ApiResponse;
 
 pub async fn create_product(
     State(svc): State<Arc<ProductAppService>>,
-    Json(cmd): Json<CreateProductCommand>,
+    Json(form): Json<CreateProductForm>,
 ) -> Result<(StatusCode, Json<ApiResponse<Uuid>>), (StatusCode, Json<ApiResponse<()>>)> {
+    let cmd = match CreateProductCommand::try_from(form) {
+        Ok(cmd) => cmd,
+        Err(msg) => {
+            return Err((
+                StatusCode::UNPROCESSABLE_ENTITY,
+                Json(ApiResponse::error(msg)),
+            ))
+        }
+    };
+
     match svc.create_product(cmd).await {
         Ok(id) => Ok((StatusCode::CREATED, Json(ApiResponse::success(id)))),
         Err(e) => {

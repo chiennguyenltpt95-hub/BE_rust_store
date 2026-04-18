@@ -14,12 +14,19 @@ pub struct AppConfig {
 
 impl AppConfig {
     pub fn from_env() -> Result<Self> {
+        let port = std::env::var("PORT")
+            .ok()
+            .and_then(|v| v.parse::<u16>().ok())
+            .unwrap_or(3011);
+
+        let http_addr = std::env::var("HTTP_ADDR").unwrap_or_else(|_| format!("0.0.0.0:{}", port));
+
         let s3_bucket = std::env::var("S3_BUCKET")
             .or_else(|_| std::env::var("S3_BUCKET_NAME"))
             .unwrap_or_else(|_| "store-assets".into());
 
         Ok(Self {
-            http_addr: std::env::var("HTTP_ADDR").unwrap_or_else(|_| "0.0.0.0:3011".into()),
+            http_addr,
             service_name: "upload-service".into(),
             jwt_secret: std::env::var("JWT_SECRET")
                 .unwrap_or_else(|_| "super-secret-change-me".into()),

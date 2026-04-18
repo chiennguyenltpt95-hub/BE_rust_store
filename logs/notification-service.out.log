@@ -1,7 +1,7 @@
-{"timestamp":"2026-04-18T07:55:19.655851Z","level":"INFO","fields":{"message":"Tracing initialized","service":"notification-service"},"target":"notification_service::infrastructure::telemetry"}
-{"timestamp":"2026-04-18T07:55:19.656068Z","level":"INFO","fields":{"message":"Starting notification-service..."},"target":"notification_service"}
-{"timestamp":"2026-04-18T07:55:19.656114Z","level":"INFO","fields":{"message":"Connecting database..."},"target":"notification_service"}
-{"timestamp":"2026-04-18T07:55:20.022115Z","level":"INFO","fields":{"message":"Database connected"},"target":"notification_service"}
-{"timestamp":"2026-04-18T07:55:20.022201Z","level":"INFO","fields":{"message":"Skipping startup migrations (RUN_MIGRATIONS_ON_STARTUP=0)"},"target":"notification_service"}
-{"timestamp":"2026-04-18T07:55:20.023392Z","level":"INFO","fields":{"message":"Listening on 0.0.0.0:3008"},"target":"notification_service"}
-{"timestamp":"2026-04-18T07:55:20.023994Z","level":"INFO","fields":{"message":"Notification Kafka listener started on topic 'domain-events'"},"target":"notification_service::presentation::event_listener"}
+{"timestamp":"2026-04-18T09:52:51.347038Z","level":"INFO","fields":{"message":"Tracing initialized","service":"notification-service"},"target":"notification_service::infrastructure::telemetry"}
+{"timestamp":"2026-04-18T09:52:51.347385Z","level":"INFO","fields":{"message":"Starting notification-service..."},"target":"notification_service"}
+{"timestamp":"2026-04-18T09:52:51.347452Z","level":"INFO","fields":{"message":"Connecting database..."},"target":"notification_service"}
+{"timestamp":"2026-04-18T09:52:51.767418Z","level":"INFO","fields":{"message":"Database connected"},"target":"notification_service"}
+{"timestamp":"2026-04-18T09:52:51.767500Z","level":"INFO","fields":{"message":"Skipping startup migrations (RUN_MIGRATIONS_ON_STARTUP=0)"},"target":"notification_service"}
+{"timestamp":"2026-04-18T09:52:51.768730Z","level":"INFO","fields":{"message":"Listening on 0.0.0.0:3008"},"target":"notification_service"}
+{"timestamp":"2026-04-18T09:52:51.769102Z","level":"INFO","fields":{"message":"Notification Kafka listener started on topic 'domain-events'"},"target":"notification_service::presentation::event_listener"}

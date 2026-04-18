@@ -1,6 +1,6 @@
-{"timestamp":"2026-04-18T07:55:25.450519Z","level":"INFO","fields":{"message":"Tracing initialized","service":"shipping-service"},"target":"shipping_service::infrastructure::telemetry"}
-{"timestamp":"2026-04-18T07:55:25.450742Z","level":"INFO","fields":{"message":"Starting shipping-service..."},"target":"shipping_service"}
-{"timestamp":"2026-04-18T07:55:25.450773Z","level":"INFO","fields":{"message":"Connecting database..."},"target":"shipping_service"}
-{"timestamp":"2026-04-18T07:55:25.849708Z","level":"INFO","fields":{"message":"Database connected"},"target":"shipping_service"}
-{"timestamp":"2026-04-18T07:55:25.849889Z","level":"INFO","fields":{"message":"Skipping startup migrations (RUN_MIGRATIONS_ON_STARTUP=0)"},"target":"shipping_service"}
-{"timestamp":"2026-04-18T07:55:25.850848Z","level":"INFO","fields":{"message":"Listening on 0.0.0.0:3009"},"target":"shipping_service"}
+{"timestamp":"2026-04-18T09:52:56.619151Z","level":"INFO","fields":{"message":"Tracing initialized","service":"shipping-service"},"target":"shipping_service::infrastructure::telemetry"}
+{"timestamp":"2026-04-18T09:52:56.619324Z","level":"INFO","fields":{"message":"Starting shipping-service..."},"target":"shipping_service"}
+{"timestamp":"2026-04-18T09:52:56.619352Z","level":"INFO","fields":{"message":"Connecting database..."},"target":"shipping_service"}
+{"timestamp":"2026-04-18T09:52:57.001075Z","level":"INFO","fields":{"message":"Database connected"},"target":"shipping_service"}
+{"timestamp":"2026-04-18T09:52:57.001197Z","level":"INFO","fields":{"message":"Skipping startup migrations (RUN_MIGRATIONS_ON_STARTUP=0)"},"target":"shipping_service"}
+{"timestamp":"2026-04-18T09:52:57.001862Z","level":"INFO","fields":{"message":"Listening on 0.0.0.0:3009"},"target":"shipping_service"}

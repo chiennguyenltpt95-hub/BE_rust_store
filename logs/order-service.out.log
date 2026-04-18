@@ -1,6 +1,6 @@
-{"timestamp":"2026-04-18T07:55:07.522039Z","level":"INFO","fields":{"message":"Tracing initialized","service":"order-service"},"target":"order_service::infrastructure::telemetry"}
-{"timestamp":"2026-04-18T07:55:07.522297Z","level":"INFO","fields":{"message":"Starting order-service..."},"target":"order_service"}
-{"timestamp":"2026-04-18T07:55:07.522401Z","level":"INFO","fields":{"message":"Connecting database..."},"target":"order_service"}
-{"timestamp":"2026-04-18T07:55:07.952666Z","level":"INFO","fields":{"message":"Database connected"},"target":"order_service"}
-{"timestamp":"2026-04-18T07:55:07.952749Z","level":"INFO","fields":{"message":"Skipping startup migrations (RUN_MIGRATIONS_ON_STARTUP=0)"},"target":"order_service"}
-{"timestamp":"2026-04-18T07:55:07.955051Z","level":"INFO","fields":{"message":"Listening on 0.0.0.0:3005","service":"order-service"},"target":"order_service"}
+{"timestamp":"2026-04-18T09:52:40.652868Z","level":"INFO","fields":{"message":"Tracing initialized","service":"order-service"},"target":"order_service::infrastructure::telemetry"}
+{"timestamp":"2026-04-18T09:52:40.653156Z","level":"INFO","fields":{"message":"Starting order-service..."},"target":"order_service"}
+{"timestamp":"2026-04-18T09:52:40.653271Z","level":"INFO","fields":{"message":"Connecting database..."},"target":"order_service"}
+{"timestamp":"2026-04-18T09:52:41.059873Z","level":"INFO","fields":{"message":"Database connected"},"target":"order_service"}
+{"timestamp":"2026-04-18T09:52:41.059955Z","level":"INFO","fields":{"message":"Skipping startup migrations (RUN_MIGRATIONS_ON_STARTUP=0)"},"target":"order_service"}
+{"timestamp":"2026-04-18T09:52:41.061450Z","level":"INFO","fields":{"message":"Listening on 0.0.0.0:3005","service":"order-service"},"target":"order_service"}

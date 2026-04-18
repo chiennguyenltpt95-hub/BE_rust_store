@@ -11,19 +11,27 @@ use uuid::Uuid;
 #[derive(Debug, Deserialize)]
 pub struct CreateUploadPresignRequest {
     #[serde(alias = "fileName")]
-    pub file_name: String,
+    pub file_name: Option<String>,
+    #[serde(alias = "fileNames")]
+    pub file_names: Option<Vec<String>>,
     #[serde(alias = "contentType")]
     pub content_type: Option<String>,
     pub folder: Option<String>,
 }
 
 #[derive(Debug, Serialize)]
-pub struct CreateUploadPresignResponse {
+pub struct UploadPresignItem {
+    pub file_name: String,
     pub method: String,
     pub upload_url: String,
     pub object_key: String,
     pub required_headers: Vec<(String, String)>,
     pub expires_in_seconds: u64,
+}
+
+#[derive(Debug, Serialize)]
+pub struct CreateUploadPresignResponse {
+    pub uploads: Vec<UploadPresignItem>,
 }
 
 pub struct UploadAppService {
@@ -67,10 +75,33 @@ impl UploadAppService {
         &self,
         req: CreateUploadPresignRequest,
     ) -> Result<CreateUploadPresignResponse, DomainError> {
-        let file_name = req.file_name.trim();
-        if file_name.is_empty() {
+        let mut file_names: Vec<String> = Vec::new();
+
+        if let Some(names) = req.file_names {
+            for name in names {
+                let trimmed = name.trim();
+                if !trimmed.is_empty() {
+                    file_names.push(trimmed.to_string());
+                }
+            }
+        }
+
+        if let Some(single) = req.file_name {
+            let trimmed = single.trim();
+            if !trimmed.is_empty() {
+                file_names.push(trimmed.to_string());
+            }
+        }
+
+        if file_names.is_empty() {
             return Err(DomainError::ValidationError(
-                "file_name cannot be empty".into(),
+                "fileName/fileNames cannot be empty".into(),
+            ));
+        }
+
+        if file_names.len() > 20 {
+            return Err(DomainError::ValidationError(
+                "Maximum 20 file names per request".into(),
             ));
         }
 
@@ -81,43 +112,54 @@ impl UploadAppService {
             .filter(|s| !s.is_empty())
             .map(sanitize_folder);
 
-        let key = build_object_key(
-            &self.key_prefix,
-            folder.as_deref(),
-            &Uuid::new_v4().to_string(),
-            &sanitize_file_name(file_name),
-        );
+        let content_type = req
+            .content_type
+            .as_deref()
+            .map(str::trim)
+            .filter(|s| !s.is_empty())
+            .map(ToString::to_string);
 
-        let mut op = self.client.put_object().bucket(&self.bucket).key(&key);
+        let mut uploads = Vec::with_capacity(file_names.len());
 
-        if let Some(content_type) = req.content_type {
-            let ct = content_type.trim().to_string();
-            if !ct.is_empty() {
-                op = op.content_type(ct);
+        for file_name in file_names {
+            let key = build_object_key(
+                &self.key_prefix,
+                folder.as_deref(),
+                &Uuid::new_v4().to_string(),
+                &sanitize_file_name(&file_name),
+            );
+
+            let mut op = self.client.put_object().bucket(&self.bucket).key(&key);
+
+            if let Some(ct) = content_type.as_ref() {
+                op = op.content_type(ct.clone());
             }
-        }
 
-        let presign_config =
-            PresigningConfig::expires_in(Duration::from_secs(self.expires_in_seconds))
+            let presign_config =
+                PresigningConfig::expires_in(Duration::from_secs(self.expires_in_seconds))
+                    .map_err(|e| DomainError::InfrastructureError(e.to_string()))?;
+
+            let presigned_req = op
+                .presigned(presign_config)
+                .await
                 .map_err(|e| DomainError::InfrastructureError(e.to_string()))?;
 
-        let presigned_req = op
-            .presigned(presign_config)
-            .await
-            .map_err(|e| DomainError::InfrastructureError(e.to_string()))?;
+            let required_headers: Vec<(String, String)> = presigned_req
+                .headers()
+                .map(|(k, v)| (k.to_string(), v.to_string()))
+                .collect();
 
-        let required_headers: Vec<(String, String)> = presigned_req
-            .headers()
-            .map(|(k, v)| (k.to_string(), v.to_string()))
-            .collect();
+            uploads.push(UploadPresignItem {
+                file_name,
+                method: "PUT".into(),
+                upload_url: presigned_req.uri().to_string(),
+                object_key: key,
+                required_headers,
+                expires_in_seconds: self.expires_in_seconds,
+            });
+        }
 
-        Ok(CreateUploadPresignResponse {
-            method: "PUT".into(),
-            upload_url: presigned_req.uri().to_string(),
-            object_key: key,
-            required_headers,
-            expires_in_seconds: self.expires_in_seconds,
-        })
+        Ok(CreateUploadPresignResponse { uploads })
     }
 }
 

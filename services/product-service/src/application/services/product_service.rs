@@ -32,11 +32,20 @@ impl ProductAppService {
             cmd.description,
             cmd.sku,
             cmd.category_id,
+            cmd.supplier_id,
+            cmd.supplier_url,
             cmd.product_type,
             cmd.attributes.unwrap_or_else(|| json!({})),
-            cmd.image_urls.unwrap_or_default(),
+            cmd.image_urls,
             cmd.price_cents,
+            cmd.cost_price_cents,
+            cmd.sale_price_cents,
+            cmd.sizes,
+            cmd.colors,
             cmd.stock,
+            cmd.weight_grams,
+            cmd.status,
+            cmd.tags,
         )?;
 
         let product_id = product.id;
@@ -74,18 +83,26 @@ impl ProductAppService {
             .ok_or_else(|| DomainError::NotFound(format!("Product {}", id)))?;
 
         let attributes = cmd.attributes.unwrap_or_else(|| product.attributes.clone());
-        let image_urls = cmd.image_urls.unwrap_or_else(|| product.image_urls.clone());
 
         product.update(
             cmd.name,
             cmd.description,
             cmd.sku,
             cmd.category_id,
+            cmd.supplier_id,
+            cmd.supplier_url,
             cmd.product_type,
             attributes,
-            image_urls,
+            cmd.image_urls,
             cmd.price_cents,
+            cmd.cost_price_cents,
+            cmd.sale_price_cents,
+            cmd.sizes,
+            cmd.colors,
             cmd.stock,
+            cmd.weight_grams,
+            cmd.status,
+            cmd.tags,
         )?;
         self.product_repo.update(&product).await
     }
@@ -219,7 +236,9 @@ impl ProductAppService {
             .product_repo
             .find_category_by_id(category_id)
             .await?
-            .ok_or_else(|| DomainError::ValidationError(format!("Category {} does not exist", category_id)))?;
+            .ok_or_else(|| {
+                DomainError::ValidationError(format!("Category {} does not exist", category_id))
+            })?;
 
         if !category.is_active {
             return Err(DomainError::ValidationError(format!(

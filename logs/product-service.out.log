@@ -1,5 +1,13 @@
-{"timestamp":"2026-04-18T07:54:38.506328Z","level":"INFO","fields":{"message":"Tracing initialized","service":"product-service"},"target":"product_service::infrastructure::telemetry"}
-{"timestamp":"2026-04-18T07:54:38.506508Z","level":"INFO","fields":{"message":"Starting product-service..."},"target":"product_service"}
-{"timestamp":"2026-04-18T07:54:39.162350Z","level":"INFO","fields":{"message":"relation \"_sqlx_migrations\" already exists, skipping"},"target":"sqlx::postgres::notice"}
-{"timestamp":"2026-04-18T07:54:39.347520Z","level":"WARN","fields":{"message":"Ignoring modified migration checksum mismatch for local/dev startup","error":"migration 2026041105 was previously applied but has been modified"},"target":"product_service"}
-{"timestamp":"2026-04-18T07:54:39.348613Z","level":"INFO","fields":{"message":"Listening on 0.0.0.0:3006","service":"product-service"},"target":"product_service"}
+{"timestamp":"2026-04-18T09:52:11.767350Z","level":"INFO","fields":{"message":"Tracing initialized","service":"product-service"},"target":"product_service::infrastructure::telemetry"}
+{"timestamp":"2026-04-18T09:52:11.767611Z","level":"INFO","fields":{"message":"Starting product-service..."},"target":"product_service"}
+{"timestamp":"2026-04-18T09:52:12.425417Z","level":"INFO","fields":{"message":"relation \"_sqlx_migrations\" already exists, skipping"},"target":"sqlx::postgres::notice"}
+{"timestamp":"2026-04-18T09:52:12.604996Z","level":"WARN","fields":{"message":"Ignoring modified migration checksum mismatch for local/dev startup","error":"migration 2026041105 was previously applied but has been modified"},"target":"product_service"}
+{"timestamp":"2026-04-18T09:52:13.058841Z","level":"INFO","fields":{"message":"column \"supplier_id\" of relation \"products\" already exists, skipping"},"target":"sqlx::postgres::notice"}
+{"timestamp":"2026-04-18T09:52:13.058930Z","level":"INFO","fields":{"message":"column \"supplier_url\" of relation \"products\" already exists, skipping"},"target":"sqlx::postgres::notice"}
+{"timestamp":"2026-04-18T09:52:13.058954Z","level":"INFO","fields":{"message":"column \"cost_price_cents\" of relation \"products\" already exists, skipping"},"target":"sqlx::postgres::notice"}
+{"timestamp":"2026-04-18T09:52:13.058977Z","level":"INFO","fields":{"message":"column \"sale_price_cents\" of relation \"products\" already exists, skipping"},"target":"sqlx::postgres::notice"}
+{"timestamp":"2026-04-18T09:52:13.058999Z","level":"INFO","fields":{"message":"column \"sizes\" of relation \"products\" already exists, skipping"},"target":"sqlx::postgres::notice"}
+{"timestamp":"2026-04-18T09:52:13.059020Z","level":"INFO","fields":{"message":"column \"colors\" of relation \"products\" already exists, skipping"},"target":"sqlx::postgres::notice"}
+{"timestamp":"2026-04-18T09:52:13.059042Z","level":"INFO","fields":{"message":"column \"weight_grams\" of relation \"products\" already exists, skipping"},"target":"sqlx::postgres::notice"}
+{"timestamp":"2026-04-18T09:52:13.059064Z","level":"INFO","fields":{"message":"column \"tags\" of relation \"products\" already exists, skipping"},"target":"sqlx::postgres::notice"}
+{"timestamp":"2026-04-18T09:52:13.060301Z","level":"INFO","fields":{"message":"Listening on 0.0.0.0:3006","service":"product-service"},"target":"product_service"}

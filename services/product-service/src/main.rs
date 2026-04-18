@@ -50,10 +50,31 @@ async fn run_migrations(db_pool: &sqlx::PgPool) -> Result<()> {
         let err_msg = err.to_string();
         if err_msg.contains("previously applied but has been modified") {
             warn!(error = %err, "Ignoring modified migration checksum mismatch for local/dev startup");
+            ensure_product_form_columns(db_pool).await?;
             return Ok(());
         }
-        return Err(err.into()); 
+        return Err(err.into());
     }
+
+    Ok(())
+}
+
+async fn ensure_product_form_columns(db_pool: &sqlx::PgPool) -> Result<()> {
+    // Forward-compatible hotfix: keep create/update APIs working when historical
+    // migration checksum drift prevents applying newer migration files.
+    sqlx::query(
+        r#"ALTER TABLE products
+           ADD COLUMN IF NOT EXISTS supplier_id UUID,
+           ADD COLUMN IF NOT EXISTS supplier_url TEXT,
+           ADD COLUMN IF NOT EXISTS cost_price_cents BIGINT,
+           ADD COLUMN IF NOT EXISTS sale_price_cents BIGINT,
+           ADD COLUMN IF NOT EXISTS sizes TEXT[] NOT NULL DEFAULT ARRAY[]::TEXT[],
+           ADD COLUMN IF NOT EXISTS colors TEXT[] NOT NULL DEFAULT ARRAY[]::TEXT[],
+           ADD COLUMN IF NOT EXISTS weight_grams INTEGER,
+           ADD COLUMN IF NOT EXISTS tags TEXT[] NOT NULL DEFAULT ARRAY[]::TEXT[]"#,
+    )
+    .execute(db_pool)
+    .await?;
 
     Ok(())
 }

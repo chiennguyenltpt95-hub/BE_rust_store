@@ -1,7 +1,7 @@
-{"timestamp":"2026-04-18T07:54:33.762802Z","level":"INFO","fields":{"message":"Tracing initialized","service":"mail-service"},"target":"mail_service::infrastructure::telemetry"}
-{"timestamp":"2026-04-18T07:54:33.762989Z","level":"INFO","fields":{"message":"Starting mail-service..."},"target":"mail_service"}
-{"timestamp":"2026-04-18T07:54:33.763040Z","level":"INFO","fields":{"message":"Using SmtpTransport: sandbox.smtp.mailtrap.io:2525"},"target":"mail_service"}
-{"timestamp":"2026-04-18T07:54:33.763300Z","level":"INFO","fields":{"message":"SMTP transport initialized: sandbox.smtp.mailtrap.io:2525"},"target":"mail_service::infrastructure::transports::smtp"}
-{"timestamp":"2026-04-18T07:54:33.769658Z","level":"INFO","fields":{"message":"Listening on 0.0.0.0:3002"},"target":"mail_service"}
-{"timestamp":"2026-04-18T07:54:33.769724Z","level":"INFO","fields":{"message":"Swagger UI: http://0.0.0.0:3002/swagger-ui"},"target":"mail_service"}
-{"timestamp":"2026-04-18T07:54:33.769830Z","level":"INFO","fields":{"message":"Kafka event listener started (protobuf) — consuming topic 'domain-events'"},"target":"mail_service::presentation::event_listener"}
+{"timestamp":"2026-04-18T09:52:06.333458Z","level":"INFO","fields":{"message":"Tracing initialized","service":"mail-service"},"target":"mail_service::infrastructure::telemetry"}
+{"timestamp":"2026-04-18T09:52:06.333663Z","level":"INFO","fields":{"message":"Starting mail-service..."},"target":"mail_service"}
+{"timestamp":"2026-04-18T09:52:06.333715Z","level":"INFO","fields":{"message":"Using SmtpTransport: sandbox.smtp.mailtrap.io:2525"},"target":"mail_service"}
+{"timestamp":"2026-04-18T09:52:06.334012Z","level":"INFO","fields":{"message":"SMTP transport initialized: sandbox.smtp.mailtrap.io:2525"},"target":"mail_service::infrastructure::transports::smtp"}
+{"timestamp":"2026-04-18T09:52:06.340392Z","level":"INFO","fields":{"message":"Listening on 0.0.0.0:3002"},"target":"mail_service"}
+{"timestamp":"2026-04-18T09:52:06.340461Z","level":"INFO","fields":{"message":"Swagger UI: http://0.0.0.0:3002/swagger-ui"},"target":"mail_service"}
+{"timestamp":"2026-04-18T09:52:06.341080Z","level":"INFO","fields":{"message":"Kafka event listener started (protobuf) — consuming topic 'domain-events'"},"target":"mail_service::presentation::event_listener"}
