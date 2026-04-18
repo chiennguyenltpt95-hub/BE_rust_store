@@ -1,8 +1,0 @@
-    Blocking waiting for file lock on package cache
-    Blocking waiting for file lock on package cache
-    Blocking waiting for file lock on package cache
-    Blocking waiting for file lock on package cache
-    Blocking waiting for file lock on artifact directory
-    Finished `dev` profile [unoptimized + debuginfo] target(s) in 15.43s
-     Running `target\x86_64-pc-windows-msvc\debug\upload-service.exe`
-error: process didn't exit successfully: `target\x86_64-pc-windows-msvc\debug\upload-service.exe` (exit code: 0xc000013a, STATUS_CONTROL_C_EXIT)

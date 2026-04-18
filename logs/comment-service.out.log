@@ -1,2 +1,6 @@
-{"timestamp":"2026-04-16T02:49:42.156588Z","level":"INFO","fields":{"message":"Tracing initialized","service":"comment-service"},"target":"comment_service::infrastructure::telemetry"}
-{"timestamp":"2026-04-16T02:49:42.156848Z","level":"INFO","fields":{"message":"Starting comment-service..."},"target":"comment_service"}
+{"timestamp":"2026-04-18T07:54:49.681507Z","level":"INFO","fields":{"message":"Tracing initialized","service":"comment-service"},"target":"comment_service::infrastructure::telemetry"}
+{"timestamp":"2026-04-18T07:54:49.681768Z","level":"INFO","fields":{"message":"Starting comment-service..."},"target":"comment_service"}
+{"timestamp":"2026-04-18T07:54:49.681818Z","level":"INFO","fields":{"message":"Connecting database..."},"target":"comment_service"}
+{"timestamp":"2026-04-18T07:54:50.091448Z","level":"INFO","fields":{"message":"Database connected"},"target":"comment_service"}
+{"timestamp":"2026-04-18T07:54:50.091559Z","level":"INFO","fields":{"message":"Skipping startup migrations (RUN_MIGRATIONS_ON_STARTUP=0)"},"target":"comment_service"}
+{"timestamp":"2026-04-18T07:54:50.092423Z","level":"INFO","fields":{"message":"Listening on 0.0.0.0:3010"},"target":"comment_service"}

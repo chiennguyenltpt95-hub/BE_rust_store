@@ -1,0 +1,34 @@
+Migration Drift Audit Report
+Generated at: 2026-04-18T07:53:35Z
+Workspace: /c/Users/Jayden/Desktop/BE_rust_store
+
+[user-service]
+  status: clean
+
+[product-service]
+  status: clean
+
+[comment-service]
+  status: clean
+
+[cart-service]
+  status: clean
+
+[checkout-service]
+  status: clean
+
+[order-service]
+  status: clean
+
+[inventory-service]
+  status: clean
+
+[notification-service]
+  status: clean
+
+[shipping-service]
+  status: clean
+
+Summary
+  drift_services: 0
+  config_errors: 0

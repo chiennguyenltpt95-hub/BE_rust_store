@@ -1,2 +1,6 @@
-{"timestamp":"2026-04-16T02:49:43.765884Z","level":"INFO","fields":{"message":"Tracing initialized","service":"checkout-service"},"target":"checkout_service::infrastructure::telemetry"}
-{"timestamp":"2026-04-16T02:49:43.766116Z","level":"INFO","fields":{"message":"Starting checkout-service..."},"target":"checkout_service"}
+{"timestamp":"2026-04-18T07:55:01.355299Z","level":"INFO","fields":{"message":"Tracing initialized","service":"checkout-service"},"target":"checkout_service::infrastructure::telemetry"}
+{"timestamp":"2026-04-18T07:55:01.355517Z","level":"INFO","fields":{"message":"Starting checkout-service..."},"target":"checkout_service"}
+{"timestamp":"2026-04-18T07:55:01.355595Z","level":"INFO","fields":{"message":"Connecting database..."},"target":"checkout_service"}
+{"timestamp":"2026-04-18T07:55:01.671289Z","level":"INFO","fields":{"message":"Database connected"},"target":"checkout_service"}
+{"timestamp":"2026-04-18T07:55:01.671384Z","level":"INFO","fields":{"message":"Skipping startup migrations (RUN_MIGRATIONS_ON_STARTUP=0)"},"target":"checkout_service"}
+{"timestamp":"2026-04-18T07:55:01.674063Z","level":"INFO","fields":{"message":"Listening on 0.0.0.0:3004","service":"checkout-service"},"target":"checkout_service"}

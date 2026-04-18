@@ -5,6 +5,18 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
 
 PID_DIR="$ROOT/.run"
+
+is_windows() {
+  case "$(uname -s 2>/dev/null || echo)" in
+    MINGW*|MSYS*|CYGWIN*|Windows_NT) return 0 ;;
+    *) return 1 ;;
+  esac
+}
+
+is_pid_running_windows() {
+  local pid="$1"
+  tasklist //FI "PID eq ${pid}" 2>/dev/null | grep -qE "[[:space:]]${pid}[[:space:]]"
+}
 SERVICES=(
   "user-service"
   "mail-service"
@@ -37,16 +49,32 @@ else
       continue
     fi
 
-    if kill -0 "$proc_id" >/dev/null 2>&1; then
-      kill "$proc_id" >/dev/null 2>&1 || true
-      sleep 0.3
-      kill -9 "$proc_id" >/dev/null 2>&1 || true
-      echo "- stopped $name (PID $proc_id)"
+    if is_windows; then
+      if is_pid_running_windows "$proc_id"; then
+        taskkill //PID "$proc_id" //T //F >/dev/null 2>&1 || true
+        echo "- stopped $name (PID $proc_id)"
+      else
+        echo "- $name: process $proc_id not found"
+      fi
     else
-      echo "- $name: process $proc_id not found"
+      if kill -0 "$proc_id" >/dev/null 2>&1; then
+        kill "$proc_id" >/dev/null 2>&1 || true
+        sleep 0.3
+        kill -9 "$proc_id" >/dev/null 2>&1 || true
+        echo "- stopped $name (PID $proc_id)"
+      else
+        echo "- $name: process $proc_id not found"
+      fi
     fi
 
     rm -f "$pid_path"
+  done
+fi
+
+if is_windows; then
+  echo "Cleaning orphan Rust service processes..."
+  for name in "${SERVICES[@]}"; do
+    taskkill //IM "${name}.exe" //T //F >/dev/null 2>&1 || true
   done
 fi
 

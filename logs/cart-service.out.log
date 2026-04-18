@@ -1,2 +1,6 @@
-{"timestamp":"2026-04-09T03:39:33.974067Z","level":"INFO","fields":{"message":"Tracing initialized","service":"cart-service"},"target":"cart_service::infrastructure::telemetry"}
-{"timestamp":"2026-04-09T03:39:33.974240Z","level":"INFO","fields":{"message":"Starting cart-service..."},"target":"cart_service"}
+{"timestamp":"2026-04-18T07:54:55.426831Z","level":"INFO","fields":{"message":"Tracing initialized","service":"cart-service"},"target":"cart_service::infrastructure::telemetry"}
+{"timestamp":"2026-04-18T07:54:55.427037Z","level":"INFO","fields":{"message":"Starting cart-service..."},"target":"cart_service"}
+{"timestamp":"2026-04-18T07:54:55.427108Z","level":"INFO","fields":{"message":"Connecting database..."},"target":"cart_service"}
+{"timestamp":"2026-04-18T07:54:55.853144Z","level":"INFO","fields":{"message":"Database connected"},"target":"cart_service"}
+{"timestamp":"2026-04-18T07:54:55.853237Z","level":"INFO","fields":{"message":"Skipping startup migrations (RUN_MIGRATIONS_ON_STARTUP=0)"},"target":"cart_service"}
+{"timestamp":"2026-04-18T07:54:55.854801Z","level":"INFO","fields":{"message":"Listening on 0.0.0.0:3003","service":"cart-service"},"target":"cart_service"}
